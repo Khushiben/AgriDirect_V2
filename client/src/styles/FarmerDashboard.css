@@ -1,0 +1,17 @@
+/* FarmerDashboard.css */
+
+.farmer-dashboard {
+  min-height: 10vh;
+  padding: 40px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.farmer-dashboard h1 {
+  font-size: 3rem;
+  color: black;
+  font-weight: 700;
+  margin: 0;
+  text-align: center;
+}
