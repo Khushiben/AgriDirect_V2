@@ -1,17 +1,58 @@
 /* AdminDashboard.css */
 
 .admin-dashboard {
-  min-height: 10vh;
-  padding: 40px 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  min-height: 100vh;
+  padding: 40px;
+  background: #f4f6f8;
 }
 
 .admin-dashboard h1 {
-  font-size: 3rem;
-  color: black;
+  font-size: 2.5rem;
+  color: #222;
   font-weight: 700;
-  margin: 0;
+  margin-bottom: 30px;
   text-align: center;
+}
+
+/* Grid layout */
+.admin-crops-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 25px;
+}
+
+/* Card */
+.admin-crop-card {
+  background: #fff;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+  transition: 0.3s ease;
+}
+
+.admin-crop-card:hover {
+  transform: translateY(-5px);
+}
+
+/* Image */
+.admin-crop-card img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+/* Content */
+.admin-crop-details {
+  padding: 18px;
+}
+
+.admin-crop-details h3 {
+  margin-bottom: 10px;
+  font-size: 1.2rem;
+}
+
+.admin-crop-details p {
+  margin: 5px 0;
+  font-size: 0.95rem;
+  color: #444;
 }

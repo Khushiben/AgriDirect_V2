@@ -5,10 +5,9 @@ import "../styles/Login.css";
 
 const Login = () => {
   const navigate = useNavigate();
-
   const [role, setRole] = useState("");
   const [error, setError] = useState("");
-
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -24,6 +23,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+      setLoading(true);
 
     if (!role) {
       setError("Please select a role");
@@ -57,7 +57,8 @@ const Login = () => {
       }
       
 
-      // ✅ Login success → save user and redirect
+      // ✅ Login success → save user and token
+localStorage.setItem("token", data.token);
       const userData = {
         userId: data.userId,
         role: data.role,
@@ -67,8 +68,11 @@ const Login = () => {
       navigate(`/${data.role}/dashboard`);
 
     } catch (err) {
+      console.error("Login error:", err);
       setError("Server error. Please try again.");
-    }
+    }finally {
+      setLoading(false);}
+
   };
 
   return (
@@ -114,7 +118,7 @@ const Login = () => {
           />
 
           <button type="submit" className="submit-btn">
-            Login
+           {loading ? "Logging in..." : "Login"}
           </button>
         </form>
       )}

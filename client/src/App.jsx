@@ -6,6 +6,7 @@ import Footer from "./components/Footer";
 import Home from "./pages/Home";
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
+import AddProduct from "./pages/AddProduct";
 
 // Dashboard pages (create these if you haven't yet)
 import AdminDashboard from "./pages/AdminDashboard";
@@ -67,6 +68,15 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/farmer/AddProduct"
+          element={
+           <ProtectedRoute role="farmer">
+           <AddProduct />
+           </ProtectedRoute>
+      }
+      />
+
       </Routes>
       <Footer />
     </BrowserRouter>

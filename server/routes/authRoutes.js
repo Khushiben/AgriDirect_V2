@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const upload = require("../middleware/uploadMiddleware");
 const { signup, login } = require("../controllers/authController"); // import login too
+const User = require("../models/User");
 
 // SIGNUP
 router.post("/signup", upload.single("licenseFile"), signup);
@@ -9,4 +10,13 @@ router.post("/signup", upload.single("licenseFile"), signup);
 // LOGIN
 router.post("/login", login);
 
+// ✅ GET USER BY ID (for dashboard)
+router.get("/user/:id", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching user" });
+  }
+});
 module.exports = router;

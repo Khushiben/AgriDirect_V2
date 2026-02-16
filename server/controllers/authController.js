@@ -1,6 +1,7 @@
 // server/controllers/authController.js
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 exports.signup = async (req, res) => {
   try {
@@ -80,6 +81,7 @@ exports.login = async (req, res) => {
     if (!role) {
       return res.status(400).json({ message: "Please select a role" });
     }
+console.log("Login request received");
 
     // 2️⃣ Check EMAIL exists
     if (!email) {
@@ -95,13 +97,22 @@ exports.login = async (req, res) => {
     const user = await User.findOne({ email, role });
     if (!user) {
       return res.status(400).json({ message: "No account found for this role and email" });
-    }
+    }console.log("User found:", user.email);
+
 
     // 5️⃣ Check PASSWORD matches
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid password" });
-    }
+    }console.log("Password matched");
+
+
+       // 🔐 CREATE TOKEN HERE
+    const token = jwt.sign(
+      { id: user._id },
+      "agriSecretKey123",
+      { expiresIn: "7d" }
+    );
 
     // ✅ Login success
     return res.status(200).json({
@@ -109,6 +120,7 @@ exports.login = async (req, res) => {
       role: user.role,
       message: "Login successful",
       userId: user._id,
+      token :token,
     });
   } catch (error) {
     console.error("Login error:", error);
