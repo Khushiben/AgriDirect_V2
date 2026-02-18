@@ -9,7 +9,16 @@ const Home = () => {
       <section className="hero">
         <h1>Connecting Natural Farmers & Conscious Consumers</h1>
         <p>Buy directly from verified farmers with full product traceability.</p>
-        <button className="cta-button">Explore Marketplace</button>
+        <button className="cta-button" onClick={() => {
+            const storedUser = JSON.parse(localStorage.getItem("user"));
+            if (storedUser) {
+              window.location.href = `/${storedUser.role}/dashboard`;
+            } else {
+              window.location.href = "/login";
+            }
+          }}>
+          Explore Marketplace
+        </button>
       </section>
 
       <section className="mission">

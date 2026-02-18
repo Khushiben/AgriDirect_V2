@@ -27,15 +27,29 @@
 }
 
 .notif-pill {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   background: #fdf6e7;
-  padding: 4px 12px;
+  padding: 6px 12px;
   border-radius: 20px;
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   font-weight: bold;
   border: 1px solid #eee;
   margin-top: 8px;
 }
+
+.notif-ok {
+  background: #1976d2;
+  color: #fff;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.notif-ok:hover { opacity: 0.95; }
 
 .add-btn {
   background-color: #4CAF50;
@@ -197,4 +211,22 @@
   width: 24px;
   height: 24px;
   border-radius: 4px;
+}
+
+/* status badges (reuse same classes as admin) */
+.status-badge {
+  display: inline-block;
+  padding: 6px 10px; /* larger padding */
+  border-radius: 6px;
+  font-size: 13px; /* slightly bigger text */
+  font-weight: 700;
+  margin-top: 8px;
+  color: #fff;
+  letter-spacing: 0.2px;
+}
+.status-badge.verified {
+  background-color: #4caf50; /* green */
+}
+.status-badge.pending {
+  background-color: #ff9800; /* orange */
 }

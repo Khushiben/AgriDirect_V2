@@ -19,4 +19,17 @@ router.get("/user/:id", async (req, res) => {
     res.status(500).json({ message: "Error fetching user" });
   }
 });
+
+// GET all distributors (public)
+router.get("/distributors", async (req, res) => {
+  try {
+    const distributors = await User.find({ role: "distributor" }).select(
+      "name email phone address state district"
+    );
+    res.json(distributors);
+  } catch (error) {
+    console.error("Error fetching distributors:", error);
+    res.status(500).json({ message: "Error fetching distributors" });
+  }
+});
 module.exports = router;

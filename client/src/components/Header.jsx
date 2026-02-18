@@ -80,11 +80,12 @@ const Header = () => {
             <Link to="/marketplace">MARKETPLACE</Link>
           </li>
 
-          {user && (
-            <li>
-              <Link to={`/${user.role}/dashboard`}>DASHBOARD</Link>
-            </li>
-          )}
+          {/* dashboard link always visible; if not logged in route to login */}
+          <li>
+            <Link to={user ? `/${user.role}/dashboard` : "/login"}>
+              DASHBOARD
+            </Link>
+          </li>
 
           <li>
             <Link to="/about">ABOUT US</Link>

@@ -3,9 +3,7 @@
 .distributor-dashboard {
   min-height: 10vh;
   padding: 40px 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position: relative;
 }
 
 .distributor-dashboard h1 {
@@ -13,5 +11,200 @@
   color: black;
   font-weight: 700;
   margin: 0;
-  text-align: center;
+}
+
+.dashboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative; /* make dropdown position relative to header */
+}
+
+.bell-icon {
+  font-size: 2rem;
+  cursor: pointer;
+  position: relative;
+}
+.bell-icon:hover {
+  opacity: 0.7;
+}
+.bell-badge {
+  display: inline-block;
+  background: #f44336;
+  color: white;
+  font-size: 0.65rem;
+  padding: 2px 5px;
+  border-radius: 50%;
+  position: absolute;
+  top: -6px;
+  right: -6px;
+}
+.notification-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 280px;
+  max-height: 400px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  padding: 8px;
+  z-index: 2000;
+}
+
+.request-card.small {
+  border: none;
+  box-shadow: none;
+  padding: 4px 0;
+  margin: 2px 0;
+}
+
+.request-card {
+  border: 1px solid #e6e6e6;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 12px auto;
+  max-width: 600px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+.request-card p {
+  margin: 4px 0;
+}
+.request-card button {
+  margin-right: 8px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.request-card button:first-of-type {
+  background: #4caf50;
+  color: #fff;
+}
+.request-card button:last-of-type {
+  background: #f44336;
+  color: #fff;
+}
+/* Bell container to position dropdown correctly */
+.bell-container {
+  position: relative;
+  display: inline-block;
+}
+
+/* Notification dropdown */
+.notification-dropdown {
+  position: absolute;
+  top: 30px; /* below the bell icon */
+  right: 0;
+  width: 300px; /* adjust width */
+  max-height: 400px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ccc;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  border-radius: 8px;
+  padding: 8px;
+  z-index: 1000;
+}
+
+/* Smaller request card in notification */
+.request-card.small {
+  padding: 6px 8px;
+  margin-bottom: 6px;
+  background: #f9f9f9;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: default;
+}
+
+.bell-icon {
+  cursor: pointer;
+  position: relative;
+  font-size: 24px;
+}
+
+.bell-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: red;
+  color: white;
+  border-radius: 50%;
+  font-size: 12px;
+  padding: 2px 6px;
+}
+.khushi {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background-color: #95ee98;
+  border-radius: 18px;
+  border-color: black;
+}
+/* PRODUCT GRID */
+.crops-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+/* PRODUCT CARD */
+.crop-grid-item {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  padding: 14px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.crop-grid-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.12);
+}
+
+/* CARD CONTENT */
+.crop-grid-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* PRODUCT IMAGE */
+.crop-image {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+/* STATUS BADGE */
+.status-badge.verified {
+  align-self: center;   /* ✅ center horizontally */
+  background: #d4f7dc;
+  color: #1a7f37;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+
+/* BUTTON */
+.action-btn {
+  margin-top: 10px;
+  background: #4caf50;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.action-btn:hover {
+  background: #43a047;
 }

@@ -1,7 +1,7 @@
 import "../styles/AddProduct.css";
 import React, { useState } from "react";
 import axios from "axios";
-import { redirect } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 
 export default function AddProduct() {
@@ -62,8 +62,17 @@ const [pestCount, setPestCount] = useState(0);
   };
 
  
+const navigate = useNavigate();
+
 const handleSubmit = async (e) => {
   e.preventDefault();
+
+  const token = localStorage.getItem("token");
+  if (!token) {
+    alert("You must be logged in to add a product.");
+    navigate("/login");
+    return;
+  }
 
   if (new Date(formData.harvestDate) <= new Date(formData.sowingDate)) {
     alert("Harvest date must be after sowing date!");
@@ -91,12 +100,14 @@ const handleSubmit = async (e) => {
       data.append("image", formData.image);
     }
 
+    const token = localStorage.getItem("token");
     const response = await axios.post(
       "http://localhost:5000/api/products/add",
       data,
       {
         headers: {
           "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
         },
       }
     );
@@ -105,12 +116,14 @@ const handleSubmit = async (e) => {
     console.log(response.data);
 
     if (response.data.success) {
-      window.location.href = "/farmer/dashboard"; // ✅ Correct redirect
+      window.location.href = "/farmer/dashboard";
     }
 
   } catch (error) {
-    console.error(error);
-    alert("Error adding product");
+    console.error("Add product error:", error.response || error.message || error);
+    alert(
+      error.response?.data?.message || "Error adding product. Check the console for details."
+    );
   }
 };
 

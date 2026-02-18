@@ -52,7 +52,29 @@ image: {
     // Link Product to Farmer
     farmer: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",required: true,
+      ref: "User",
+      required: true,
+    },
+    // approval / marketplace information
+    status: {
+      type: String,
+      enum: ["pending", "verified"],
+      default: "pending",
+    },
+    qualityGrade: String,
+    adminRating: Number,
+    minPrice: Number,
+    maxPrice: Number,
+    // optional distributor selected by farmer
+    distributor: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+    // track approval decision from distributor
+    distributorApprovalStatus: {
+      type: String,
+      enum: ["none","pending","approved","rejected"],
+      default: "none",
     },
   },
   { timestamps: true }

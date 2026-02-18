@@ -14,6 +14,8 @@ import FarmerDashboard from "./pages/FarmerDashboard";
 import ConsumerDashboard from "./pages/ConsumerDashboard";
 import DistributorDashboard from "./pages/DistributorDashboard";
 import RetailerDashboard from "./pages/RetailerDashboard";
+import Marketplace from "./pages/Marketplace";
+import Checkout from "./pages/Checkout";
 
 // ProtectedRoute component
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -71,11 +73,22 @@ function App() {
         <Route
           path="/farmer/AddProduct"
           element={
-           <ProtectedRoute role="farmer">
-           <AddProduct />
-           </ProtectedRoute>
-      }
-      />
+            <ProtectedRoute role="farmer">
+              <AddProduct />
+            </ProtectedRoute>
+          }
+        />
+        {/* marketplace accessible to any logged in user */}
+        <Route path="/marketplace" element={<Marketplace />} />
+
+        <Route
+          path="/checkout"
+          element={
+            <ProtectedRoute>
+              <Checkout />
+            </ProtectedRoute>
+          }
+        />
 
       </Routes>
       <Footer />

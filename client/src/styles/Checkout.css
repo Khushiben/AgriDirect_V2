@@ -1,0 +1,21 @@
+/* simple checkout page styles */
+.checkout-page {
+  padding: 40px;
+  text-align: center;
+}
+.checkout-page button {
+  margin: 8px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.checkout-page button:first-of-type {
+  background: #1976d2;
+  color: #fff;
+}
+.checkout-page button:last-of-type {
+  background: #b0bec5;
+  color: #000;
+}
