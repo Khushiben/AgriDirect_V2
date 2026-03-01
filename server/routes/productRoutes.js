@@ -3,7 +3,7 @@ const router = express.Router();
 const AddProduct = require("../models/AddProduct");
 const upload = require("../middleware/uploadMiddleware");
 const { protect } = require("../middleware/authMiddleware");
-
+const contract = require("../blockchain/contract");
 
 // CREATE PRODUCT
 router.post("/add",protect, upload.single("image"), async (req, res) => {
@@ -82,19 +82,51 @@ router.put("/admin/approve/:id", protect, async (req, res) => {
       minPrice: req.body.minPrice,
       maxPrice: req.body.maxPrice,
     };
-
-    const product = await AddProduct.findByIdAndUpdate(id, updateData, {
-      new: true,
-    }).populate("farmer", "name email");
-
+      // 1️⃣ First update product
+    const product = await AddProduct.findByIdAndUpdate(
+      id,
+      updateData,
+      { new: true }
+    ).populate("farmer", "name email");
+    
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
+    // 2️⃣ Then call blockchain
+    const tx = await contract.verifyProduct(
+      product._id.toString(),
+      product.farmer.name,
+      product.variety
+    );
 
-    // optionally: here you could fire off email/notification to farmer
-    // for now the frontend will show an alert when they next fetch products
+    console.log("Admin approve: tx object:", tx && (tx.hash || tx));
 
-    res.json(product);
+    const receipt = await tx.wait();
+    console.log("Admin approve: receipt:", receipt && receipt.hash);
+
+    // ensure history array exists (older docs may not have the field)
+    if (!Array.isArray(product.blockchainHistory)) {
+      product.blockchainHistory = [];
+    }
+
+    // add history entry and set tx hash on document before saving
+    const historyEntry = {
+      action: "Admin approve",
+      txHash: receipt && receipt.hash ? receipt.hash : null,
+      actor: req.user.name,
+      price: req.body.price || product.price,
+      timestamp: new Date(),
+    };
+
+    product.blockchainHistory.push(historyEntry);
+    // set the top-level tx hash so it's easy to query
+    product.blockchainTxHash = receipt.hash;
+    const saved = await product.save();
+    console.log("Admin approve: product saved with blockchainTxHash", saved.blockchainTxHash);
+
+    // return the fresh document (populate farmer fields)
+    const updated = await AddProduct.findById(id).populate("farmer", "name email");
+    res.json(updated);
   } catch (error) {
     console.error("Approval error:", error);
     res.status(500).json({ message: "Server error" });
@@ -194,18 +226,66 @@ router.get("/distributor/requests", protect, async (req, res) => {
 // DISTRIBUTOR approves a product request
 router.put("/:id/distributor/approve", protect, async (req, res) => {
   try {
-    const product = await AddProduct.findById(req.params.id);
+      if (req.user.role !== "distributor") {
+      return res.status(403).json({ message: "Access denied" });
+    }
+    const product = await AddProduct.findById(req.params.id)
+      .populate("farmer", "name");
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
-    if (product.distributor && product.distributor.toString() !== req.user._id.toString()) {
+     if (product.distributor && product.distributor.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: "Not your request" });
     }
     product.distributorApprovalStatus = "approved";
+
     await product.save();
-    res.json(product);
+    
+    res.json({
+      message: "Distributor approved successfully",
+      product
+    });
+
   } catch (error) {
-    console.error("Approval error:", error);
+    console.error(" Distributor Approval error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+//distributor purchases product
+router.post("/:id/record-distributor-sale", protect, async (req, res) => {
+  try {
+    if (req.user.role !== "distributor") {
+      return res.status(403).json({ message: "Only distributor allowed" });
+    }
+
+    const product = await AddProduct.findById(req.params.id);
+
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    const tx = await contract.recordSale(
+      product._id.toString(),
+      req.user.name,
+      req.body.price
+    );
+
+    const receipt = await tx.wait();
+
+    product.blockchainHistory.push({
+      action: "Distributor Purchase",
+      txHash: receipt.hash,
+      actor: req.user.name,
+      price: req.body.price,
+      timestamp: new Date()
+    });
+
+    await product.save();
+
+    res.json({ message: "Blockchain updated", txHash: receipt.hash });
+
+  } catch (error) {
+    console.error("Blockchain error:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -229,5 +309,47 @@ router.put("/:id/distributor/reject", protect, async (req, res) => {
   }
 });
 
+//retailersale route
+router.post("/:id/retailer/sell", protect, async (req, res) => {
+  try {
+
+    if (req.user.role !== "retailer") {
+      return res.status(403).json({ message: "Only retailer allowed" });
+    }
+
+    const product = await AddProduct.findById(req.params.id);
+
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    const tx = await contract.recordSale(
+      product._id.toString(),
+      req.user.name,
+      req.body.price
+    );
+
+    const receipt = await tx.wait();
+
+    product.blockchainHistory.push({
+      action: "Reatiler Sale",   // change based on action
+      txHash: receipt.hash,
+      actor: req.user.name,
+      price: req.body.price,
+      timestamp: new Date()
+    });
+
+    await product.save();
+
+    res.json({
+      message: "Retailer sale recorded on blockchain",
+      txHash: receipt.hash
+    });
+
+  } catch (error) {
+    console.error("Retailer sale error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
 
 module.exports = router;

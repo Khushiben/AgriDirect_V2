@@ -76,6 +76,25 @@ image: {
       enum: ["none","pending","approved","rejected"],
       default: "none",
     },
+    blockchainTxHash: {
+     type: String,
+    default: null,
+},
+geoLocation: {
+  lat: Number,
+  lng: Number
+},blockchainHistory: {
+    type: [
+      {
+        action: String,
+        txHash: String,
+        actor: String,
+        price: Number,
+        timestamp: Date
+      }
+    ],
+    default: []
+  }
   },
   { timestamps: true }
 );

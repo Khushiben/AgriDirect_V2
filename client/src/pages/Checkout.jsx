@@ -64,7 +64,11 @@ const Checkout = () => {
         "http://localhost:5000/api/distributor-purchases",
         purchaseData,
         { headers: { Authorization: `Bearer ${token}` } }
-      );
+      );await axios.post(
+  `http://localhost:5000/api/products/${product._id}/record-distributor-sale`,
+  { price: totalPrice },
+  { headers: { Authorization: `Bearer ${token}` } }
+);
 
       setPaymentStatus("success");
       alert("Payment successful! Purchase saved.");
