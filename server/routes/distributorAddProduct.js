@@ -2,7 +2,6 @@
 const express = require("express");
 const router = express.Router();
 const AddProduct = require("../models/distributorAddProduct"); 
-const DistributorPurchase = require("../models/distributorAddProduct"); // your purchase schema
 const { protect } = require("../middleware/authMiddleware");
 const upload = require("../middleware/uploadMiddleware"); // ✅ use existing middleware
 
@@ -40,7 +39,7 @@ router.post("/add", protect, upload.single("productImage"), async (req, res) => 
     product.quantity -= Number(quantity);
     await product.save();
 
-    const newPurchase = new DistributorPurchase({
+    const newPurchase = new AddProduct({
       product: productId,
       farmer: product.farmer,
       buyer: req.user._id,
