@@ -11,7 +11,13 @@
 			{
 				"indexed": false,
 				"internalType": "string",
-				"name": "buyerName",
+				"name": "action",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "actorName",
 				"type": "string"
 			},
 			{
@@ -27,38 +33,7 @@
 				"type": "uint256"
 			}
 		],
-		"name": "ProductSold",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": false,
-				"internalType": "string",
-				"name": "productId",
-				"type": "string"
-			},
-			{
-				"indexed": false,
-				"internalType": "string",
-				"name": "farmerName",
-				"type": "string"
-			},
-			{
-				"indexed": false,
-				"internalType": "string",
-				"name": "variety",
-				"type": "string"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "timestamp",
-				"type": "uint256"
-			}
-		],
-		"name": "ProductVerified",
+		"name": "ActionRecorded",
 		"type": "event"
 	},
 	{
@@ -110,55 +85,26 @@
 	{
 		"inputs": [
 			{
-				"internalType": "uint256",
+				"internalType": "string",
 				"name": "",
-				"type": "uint256"
-			}
-		],
-		"name": "products",
-		"outputs": [
-			{
-				"internalType": "string",
-				"name": "productId",
 				"type": "string"
 			},
-			{
-				"internalType": "string",
-				"name": "farmerName",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "variety",
-				"type": "string"
-			},
-			{
-				"internalType": "uint256",
-				"name": "timestamp",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
 			{
 				"internalType": "uint256",
 				"name": "",
 				"type": "uint256"
 			}
 		],
-		"name": "sales",
+		"name": "productHistory",
 		"outputs": [
 			{
 				"internalType": "string",
-				"name": "productId",
+				"name": "action",
 				"type": "string"
 			},
 			{
 				"internalType": "string",
-				"name": "buyerName",
+				"name": "actorName",
 				"type": "string"
 			},
 			{

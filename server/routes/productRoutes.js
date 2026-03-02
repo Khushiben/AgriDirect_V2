@@ -82,16 +82,18 @@ router.put("/admin/approve/:id", protect, async (req, res) => {
       minPrice: req.body.minPrice,
       maxPrice: req.body.maxPrice,
     };
-      // 1️⃣ First update product
+
+    // 1️⃣ First update product
     const product = await AddProduct.findByIdAndUpdate(
       id,
       updateData,
       { new: true }
     ).populate("farmer", "name email");
-    
+
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
+
     // 2️⃣ Then call blockchain
     const tx = await contract.verifyProduct(
       product._id.toString(),
@@ -102,7 +104,7 @@ router.put("/admin/approve/:id", protect, async (req, res) => {
     console.log("Admin approve: tx object:", tx && (tx.hash || tx));
 
     const receipt = await tx.wait();
-    console.log("Admin approve: receipt:", receipt && receipt.hash);
+    console.log("Admin approve: receipt:", receipt && receipt.transactionHash);
 
     // ensure history array exists (older docs may not have the field)
     if (!Array.isArray(product.blockchainHistory)) {
@@ -112,27 +114,35 @@ router.put("/admin/approve/:id", protect, async (req, res) => {
     // add history entry and set tx hash on document before saving
     const historyEntry = {
       action: "Admin approve",
-      txHash: receipt && receipt.hash ? receipt.hash : null,
+      txHash: receipt ? receipt.transactionHash : null,
       actor: req.user.name,
       price: req.body.price || product.price,
       timestamp: new Date(),
     };
 
     product.blockchainHistory.push(historyEntry);
+
     // set the top-level tx hash so it's easy to query
-    product.blockchainTxHash = receipt.hash;
+    product.blockchainTxHash = receipt.transactionHash;
+
     const saved = await product.save();
-    console.log("Admin approve: product saved with blockchainTxHash", saved.blockchainTxHash);
+    console.log(
+      "Admin approve: product saved with blockchainTxHash",
+      saved.blockchainTxHash
+    );
 
     // return the fresh document (populate farmer fields)
-    const updated = await AddProduct.findById(id).populate("farmer", "name email");
+    const updated = await AddProduct.findById(id).populate(
+      "farmer",
+      "name email"
+    );
+
     res.json(updated);
   } catch (error) {
     console.error("Approval error:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
-
 // PUBLIC or protected listing of marketplace items
 router.get("/marketplace", async (req, res) => {
   try {
@@ -203,54 +213,6 @@ router.get("/", protect, async (req, res) => {
     res.status(500).json({ message: "Error fetching products" });
   }
 });
-
-// DISTRIBUTOR - get incoming requests that need approval
-router.get("/distributor/requests", protect, async (req, res) => {
-  try {
-    if (req.user.role !== "distributor") {
-      return res.status(403).json({ message: "Access denied" });
-    }
-    const products = await AddProduct.find({
-      distributor: req.user._id,
-      distributorApprovalStatus: "pending",
-    })
-      .populate("farmer", "name email")
-      .sort({ createdAt: -1 });
-    res.json(products);
-  } catch (error) {
-    console.error("Distributor requests error:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
-// DISTRIBUTOR approves a product request
-router.put("/:id/distributor/approve", protect, async (req, res) => {
-  try {
-      if (req.user.role !== "distributor") {
-      return res.status(403).json({ message: "Access denied" });
-    }
-    const product = await AddProduct.findById(req.params.id)
-      .populate("farmer", "name");
-    if (!product) {
-      return res.status(404).json({ message: "Product not found" });
-    }
-     if (product.distributor && product.distributor.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: "Not your request" });
-    }
-    product.distributorApprovalStatus = "approved";
-
-    await product.save();
-    
-    res.json({
-      message: "Distributor approved successfully",
-      product
-    });
-
-  } catch (error) {
-    console.error(" Distributor Approval error:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-});
 //distributor purchases product
 router.post("/:id/record-distributor-sale", protect, async (req, res) => {
   try {
@@ -286,25 +248,6 @@ router.post("/:id/record-distributor-sale", protect, async (req, res) => {
 
   } catch (error) {
     console.error("Blockchain error:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
-// DISTRIBUTOR rejects a product request
-router.put("/:id/distributor/reject", protect, async (req, res) => {
-  try {
-    const product = await AddProduct.findById(req.params.id);
-    if (!product) {
-      return res.status(404).json({ message: "Product not found" });
-    }
-    if (product.distributor && product.distributor.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: "Not your request" });
-    }
-    product.distributorApprovalStatus = "rejected";
-    await product.save();
-    res.json(product);
-  } catch (error) {
-    console.error("Rejection error:", error);
     res.status(500).json({ message: "Server error" });
   }
 });

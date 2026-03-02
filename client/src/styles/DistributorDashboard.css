@@ -208,3 +208,18 @@
 .action-btn:hover {
   background: #43a047;
 }
+.add-to-marketplace-btn {
+  margin-top: 10px;
+  padding: 8px 12px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.2s ease;
+}
+
+.add-to-marketplace-btn:hover {
+  background-color: #45a049;
+}
