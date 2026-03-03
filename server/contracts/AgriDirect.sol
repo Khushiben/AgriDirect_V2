@@ -3,33 +3,19 @@ pragma solidity ^0.8.20;
 
 contract AgriDirect {
 
-    struct Product {
-        string productId;
-        string farmerName;
-        string variety;
+    struct History {
+        string action;        // Verified / Sold
+        string actorName;     // Farmer / Distributor / Retailer
+        uint256 price;        // 0 for verification
         uint256 timestamp;
     }
 
-    struct Sale {
-        string productId;
-        string buyerName;
-        uint256 price;
-        uint256 timestamp;
-    }
+    mapping(string => History[]) public productHistory;
 
-    Product[] public products;
-    Sale[] public sales;
-
-    event ProductVerified(
+    event ActionRecorded(
         string productId,
-        string farmerName,
-        string variety,
-        uint256 timestamp
-    );
-
-    event ProductSold(
-        string productId,
-        string buyerName,
+        string action,
+        string actorName,
         uint256 price,
         uint256 timestamp
     );
@@ -39,17 +25,21 @@ contract AgriDirect {
         string memory _farmerName,
         string memory _variety
     ) public {
-        products.push(Product(
-            _productId,
-            _farmerName,
-            _variety,
-            block.timestamp
-        ));
 
-        emit ProductVerified(
+        productHistory[_productId].push(
+            History(
+                "Verified",
+                _farmerName,
+                0,
+                block.timestamp
+            )
+        );
+
+        emit ActionRecorded(
             _productId,
+            "Verified",
             _farmerName,
-            _variety,
+            0,
             block.timestamp
         );
     }
@@ -59,15 +49,19 @@ contract AgriDirect {
         string memory _buyerName,
         uint256 _price
     ) public {
-        sales.push(Sale(
-            _productId,
-            _buyerName,
-            _price,
-            block.timestamp
-        ));
 
-        emit ProductSold(
+        productHistory[_productId].push(
+            History(
+                "Sold",
+                _buyerName,
+                _price,
+                block.timestamp
+            )
+        );
+
+        emit ActionRecorded(
             _productId,
+            "Sold",
             _buyerName,
             _price,
             block.timestamp
