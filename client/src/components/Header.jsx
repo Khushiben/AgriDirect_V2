@@ -77,8 +77,16 @@ const Header = () => {
           </li>
 
           <li>
-            <Link to="/marketplace">MARKETPLACE</Link>
-          </li>
+  <Link
+    to={
+      user?.role?.toLowerCase() === "retailer"
+        ? "/retailer/marketplace"
+        : "/marketplace"
+    }
+  >
+    MARKETPLACE
+  </Link>
+</li>
 
           {/* dashboard link always visible; if not logged in route to login */}
           <li>

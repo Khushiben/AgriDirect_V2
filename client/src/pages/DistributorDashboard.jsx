@@ -53,13 +53,13 @@ const DistributorDashboard = () => {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.get(
-        "http://localhost:5000/api/distributor-marketplace/my-products",
+        "http://localhost:5000/api/distributortomarketplaces/my-products",
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setMarketplaceProducts(res.data);
     } catch (error) {
       console.error("Error fetching marketplace products:", error);
-    }
+    } 
   };
 
   useEffect(() => {
@@ -201,15 +201,15 @@ const DistributorDashboard = () => {
             {marketplaceProducts.map((p) => (
               <div key={p._id} className="crop-grid-item">
                 <div className="crop-grid-details">
-                  {p.image && (
-                    <img
-                      src={`http://localhost:5000/uploads/licenses/${p.image}`}
-                      alt={p.variety}
-                      className="crop-image"
-                    />
-                  )}
+                  {p.productImage && (
+  <img
+    src={`http://localhost:5000/uploads/licenses/${p.productImage}`}
+    alt={p.variety}
+    className="crop-image"
+  />
+)}
                   <strong>{p.variety}</strong>
-                  <p>₹ {p.sellingPricePerKg} / kg</p>
+                  <p>₹ {p.sellingPrice} / kg</p>
                   <p>Quantity: {p.quantity} kg</p>
 
                   {p.status === "COMPLETED" ? (

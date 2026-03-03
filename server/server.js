@@ -8,7 +8,8 @@ const productRoutes = require("./routes/productRoutes");
 const distributorPurchaseRoutes = require("./routes/distributorPurchaseRoutes");
 const connectDB = require("./config/db");
 const distributorAddProduct = require("./routes/distributorAddProduct");
-
+const retailerProductRoutes = require("./routes/retailerProductRoutes");
+const distributorMarketplaceRoutes = require("./routes/distributorMarketplaceRoutes");
 
 const app = express();
 
@@ -36,6 +37,10 @@ app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/distributor-purchases", distributorPurchaseRoutes);
 app.use("/api/distributor-add-product", distributorAddProduct);
+app.use("/api", retailerProductRoutes);
+app.use("/api/distributortomarketplaces", distributorMarketplaceRoutes);
+
+
 
 // Error handling
 app.use((err, req, res, next) => {

@@ -213,6 +213,63 @@ router.get("/", protect, async (req, res) => {
     res.status(500).json({ message: "Error fetching products" });
   }
 });
+// DISTRIBUTOR - get incoming requests that need approval
+router.get("/distributor/requests", protect, async (req, res) => {
+  try {
+    if (req.user.role !== "distributor") {
+      return res.status(403).json({ message: "Access denied" });
+    }
+    const products = await AddProduct.find({
+      distributor: req.user._id,
+      distributorApprovalStatus: "pending",
+    })
+      .populate("farmer", "name email")
+      .sort({ createdAt: -1 });
+    res.json(products);
+  } catch (error) {
+    console.error("Distributor requests error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// DISTRIBUTOR approves a product request
+router.put("/:id/distributor/approve", protect, async (req, res) => {
+  try {
+    const product = await AddProduct.findById(req.params.id);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+    if (product.distributor && product.distributor.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Not your request" });
+    }
+    product.distributorApprovalStatus = "approved";
+    await product.save();
+    res.json(product);
+  } catch (error) {
+    console.error("Approval error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// DISTRIBUTOR rejects a product request
+router.put("/:id/distributor/reject", protect, async (req, res) => {
+  try {
+    const product = await AddProduct.findById(req.params.id);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+    if (product.distributor && product.distributor.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Not your request" });
+    }
+    product.distributorApprovalStatus = "rejected";
+    await product.save();
+    res.json(product);
+  } catch (error) {
+    console.error("Rejection error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 //distributor purchases product
 router.post("/:id/record-distributor-sale", protect, async (req, res) => {
   try {

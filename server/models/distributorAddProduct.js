@@ -2,9 +2,21 @@ const mongoose = require("mongoose");
 
 const distributorPurchaseSchema = new mongoose.Schema(
   {
-    product: { type: mongoose.Schema.Types.ObjectId, ref: "AddProduct", required: true },
-    farmer: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, // farmer who sold
-    buyer: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, // distributor
+    product: { 
+      type: mongoose.Schema.Types.ObjectId, 
+      ref: "AddProduct", 
+      required: true 
+    },
+    farmer: { 
+      type: mongoose.Schema.Types.ObjectId, 
+      ref: "User", 
+      required: true 
+    },
+    buyer: { 
+      type: mongoose.Schema.Types.ObjectId, 
+      ref: "User", 
+      required: true 
+    },
     buyerName: { type: String },
     variety: { type: String },
     quantity: { type: Number, required: true },
@@ -20,7 +32,7 @@ const distributorPurchaseSchema = new mongoose.Schema(
     processingCost: { type: Number },
     otherCost: { type: Number },
     profit: { type: Number },
-    productImage: { type: String }, // store filename
+    productImage: { type: String },
     status: { type: String, default: "completed" },
   },
   { timestamps: true }

@@ -15,17 +15,37 @@ const Checkout = () => {
   const query = new URLSearchParams(location.search);
   const productId = query.get("productId");
 
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+
   useEffect(() => {
     const fetchProduct = async () => {
       try {
+
         if (stateProduct) {
           setProduct(stateProduct);
         } else if (productId) {
-          const res = await axios.get(
-            `http://localhost:5000/api/products/${productId}`
-          );
-          setProduct(res.data);
+
+          // 🔹 DISTRIBUTOR → fetch from products
+          if (user.role === "distributor") {
+            const res = await axios.get(
+              `http://localhost:5000/api/products/${productId}`
+            );
+            setProduct(res.data);
+          }
+
+          // 🔹 RETAILER → fetch from distributortomarketplaces
+          else if (user.role === "retailer") {
+            const res = await axios.get(
+              `http://localhost:5000/api/distributortomarketplaces/${productId}`
+            );
+            setProduct(res.data);
+          }
+
+          else {
+            alert("Unauthorized role");
+          }
         }
+
       } catch (err) {
         console.error("Error fetching product:", err);
         alert("Failed to load product");
@@ -40,38 +60,70 @@ const Checkout = () => {
   if (loading) return <p>Loading...</p>;
   if (!product) return <p>Product not found.</p>;
 
-  const totalPrice = buyQuantity * product.price;
+  // ✅ ROLE BASED PRICE
+  const pricePerKg =
+    user.role === "retailer"
+      ? product.sellingPrice
+      : product.price;
+
+  const totalPrice = buyQuantity * pricePerKg;
 
   const handlePayment = async () => {
     try {
-      const user = JSON.parse(localStorage.getItem("user") || "{}");
       const token = localStorage.getItem("token");
 
-      const purchaseData = {
-        productId: product._id,
-        variety: product.variety || product.name,
-        quantity: buyQuantity,
-        pricePerKg: product.price,
-        totalPrice: totalPrice,
+      if (!user || !user.role) {
+        alert("User not logged in properly");
+        return;
+      }
 
-        // ✅ FIX (ONLY CHANGE)
-        farmerId: product.farmer?._id || product.farmer,
+      // ==============================
+      // 🔹 DISTRIBUTOR FLOW
+      // ==============================
+      if (user.role === "distributor") {
 
-        buyerName: user.name || "Anonymous",
-      };
+        const purchaseData = {
+          productId: product._id,
+          variety: product.variety || product.name,
+          quantity: buyQuantity,
+          pricePerKg: product.price,
+          totalPrice: totalPrice,
+          farmerId: product.farmer?._id || product.farmer,
+          buyerName: user.name || "Anonymous",
+        };
 
-      await axios.post(
-        "http://localhost:5000/api/distributor-purchases",
-        purchaseData,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );await axios.post(
-  `http://localhost:5000/api/products/${product._id}/record-distributor-sale`,
-  { price: totalPrice },
-  { headers: { Authorization: `Bearer ${token}` } }
-);
+        await axios.post(
+          "http://localhost:5000/api/distributor-purchases",
+          purchaseData,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        await axios.post(
+          `http://localhost:5000/api/products/${product._id}/record-distributor-sale`,
+          { price: totalPrice },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      }
+
+      // ==============================
+      // 🔹 RETAILER FLOW
+      // ==============================
+      else if (user.role === "retailer") {
+
+        await axios.post(
+          `http://localhost:5000/api/products/${product._id}/retailer/sell`,
+          { price: totalPrice },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      }
+
+      else {
+        alert("Unauthorized role");
+        return;
+      }
 
       setPaymentStatus("success");
-      alert("Payment successful! Purchase saved.");
+      alert("Payment successful!");
       navigate("/marketplace");
 
     } catch (err) {
@@ -88,8 +140,22 @@ const Checkout = () => {
       <div className="checkout-product">
         <p><strong>Variety:</strong> {product.variety || product.name}</p>
         <p><strong>Available Quantity:</strong> {product.quantity} kg</p>
-        <p><strong>Farmer:</strong> {product.farmer?.name || "Unknown"}</p>
-        <p><strong>Price per kg:</strong> ₹ {product.price}</p>
+
+        {/* 🔹 DISTRIBUTOR VIEW */}
+        {user.role === "distributor" && (
+          <>
+            <p><strong>Farmer:</strong> {product.farmer?.name || "Unknown"}</p>
+            <p><strong>Price per kg:</strong> ₹ {product.price}</p>
+          </>
+        )}
+
+        {/* 🔹 RETAILER VIEW */}
+        {user.role === "retailer" && (
+          <>
+            <p><strong>Distributor:</strong> {product.buyerName || "Unknown"}</p>
+            <p><strong>Selling Price per kg:</strong> ₹ {product.sellingPrice}</p>
+          </>
+        )}
 
         <div style={{ marginTop: "10px" }}>
           <label><strong>Enter Quantity to Buy (kg): </strong></label>

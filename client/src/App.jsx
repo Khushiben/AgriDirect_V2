@@ -14,6 +14,7 @@ import ConsumerDashboard from "./pages/ConsumerDashboard";
 import DistributorDashboard from "./pages/DistributorDashboard";
 import RetailerDashboard from "./pages/RetailerDashboard";
 import Marketplace from "./pages/Marketplace";
+import RetailerMarketplace from "./pages/RetailerMarketplace"; // ✅ ADDED
 import Checkout from "./pages/Checkout";
 
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -61,6 +62,12 @@ function App() {
 
         {/* MARKETPLACE */}
         <Route path="/marketplace" element={<Marketplace />} />
+
+        {/* ✅ RETAILER MARKETPLACE (NEW) */}
+        <Route
+  path="/retailer/marketplace"
+  element={<RetailerMarketplace />}
+/>
 
         {/* CHECKOUT */}
         <Route

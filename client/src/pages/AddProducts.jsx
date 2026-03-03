@@ -6,12 +6,14 @@ import { useNavigate, useLocation } from "react-router-dom";
 export default function AddDProduct() {
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   // Receive product data from navigation
   const { purchase } = location.state || {};
+  const minPrice = purchase?.product?.minPrice || 0;
+  const maxPrice = purchase?.product?.maxPrice || 0;
 
   const [formData, setFormData] = useState({
-    productForm: "", // Paddy or Milled
+    productForm: "",
     cleaning: "No",
     stoneRemoval: "No",
     millingRequired: "No",
@@ -23,7 +25,7 @@ export default function AddDProduct() {
     purchasePrice: purchase?.pricePerKg || "",
     sellingPrice: "",
     quantity: purchase?.quantity || "",
-    productImage: null, // for uploaded image
+    productImage: null,
   });
 
   const [profit, setProfit] = useState(0);
@@ -71,12 +73,23 @@ export default function AddDProduct() {
       data.append("quantity", formData.quantity);
       data.append("profit", profit);
       data.append("variety", purchase.variety);
-      data.append("productId", purchase._id);
-      if (formData.productImage) data.append("productImage", formData.productImage);
+      data.append("productId", purchase.product?._id || purchase.product);
 
-      await axios.post("http://localhost:5000/api/distributor-add-product/add", data, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      if (formData.productImage)
+        data.append("productImage", formData.productImage);
+
+      const token = localStorage.getItem("token");
+
+      await axios.post(
+        "http://localhost:5000/api/distributor-add-product/add",
+        data,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       alert("Distributor Product Added Successfully!");
       navigate("/distributor/dashboard");
@@ -87,18 +100,24 @@ export default function AddDProduct() {
   };
 
   if (!purchase) {
-    return <p style={{ textAlign: "center", color: "red" }}>No product selected!</p>;
+    return (
+      <p style={{ textAlign: "center", color: "red" }}>
+        No product selected!
+      </p>
+    );
   }
 
   return (
     <div className="add-product-container">
       <form className="full-page-form" onSubmit={handleSubmit}>
-        <h1 style={{textAlign:"center", color:"green"}}>-: Distributor Product Processing :-</h1>
+        <h1 style={{ textAlign: "center", color: "green" }}>
+          -: Distributor Product Processing :-
+        </h1>
 
-        {/* Display product info */}
         <h2>Product: {purchase.variety}</h2>
         <p>Available Quantity: {purchase.quantity} kg</p>
         <p>Purchase Price: ₹ {purchase.pricePerKg} / kg</p>
+
         {purchase.product?.image && (
           <img
             src={`http://localhost:5000/uploads/licenses/${purchase.product.image}`}
@@ -107,7 +126,6 @@ export default function AddDProduct() {
           />
         )}
 
-        {/* Paddy or Rice */}
         <label>Product Form</label>
         <select name="productForm" onChange={handleChange} required>
           <option value="">Select</option>
@@ -115,7 +133,6 @@ export default function AddDProduct() {
           <option value="Milled">Milled Rice (Without Husk)</option>
         </select>
 
-        {/* If Paddy show processing options */}
         {formData.productForm === "Paddy" && (
           <>
             <label>Milling Required?</label>
@@ -140,9 +157,9 @@ export default function AddDProduct() {
 
         <h2>Logistics & Processing Costs</h2>
 
-        Purchase Price:<input
+        Purchase Price:
+        <input
           type="number"
-          placeholder="Purchase Price (₹)"
           name="purchasePrice"
           value={formData.purchasePrice}
           onChange={handleChange}
@@ -150,50 +167,34 @@ export default function AddDProduct() {
         />
 
         Transport Cost:
+        <input type="number" name="transportCost" onChange={handleChange} />
+
+        Loading/Unloading Cost:
+        <input type="number" name="loadingCost" onChange={handleChange} />
+
+        Storage Cost:
+        <input type="number" name="storageCost" onChange={handleChange} />
+
+        Processing Cost:
+        <input type="number" name="processingCost" onChange={handleChange} />
+
+        Other Cost:
+        <input type="number" name="otherCost" onChange={handleChange} />
+
+        Selling Price:
         <input
           type="number"
-          placeholder="Transport Cost (₹)"
-          name="transportCost"
-          onChange={handleChange}
-        />
-
-        Loading/Unloading Cost:<input
-          type="number"
-          placeholder="Loading/Unloading Cost (₹)"
-          name="loadingCost"
-          onChange={handleChange}
-        />
-
-        Storage Cost:<input
-          type="number"
-          placeholder="Storage Cost (₹)"
-          name="storageCost"
-          onChange={handleChange}
-        />
-
-        Processing Cost:<input
-          type="number"
-          placeholder="Processing Cost (₹)"
-          name="processingCost"
-          onChange={handleChange}
-        />
-
-        Other Cost:<input
-          type="number"
-          placeholder="Other Cost (₹)"
-          name="otherCost"
-          onChange={handleChange}
-        />
-
-        Selling Price:<input
-          type="number"
-          placeholder="Selling Price (₹)"
           name="sellingPrice"
+          min={minPrice}
+          max={maxPrice}
           onChange={handleChange}
           required
         />
 
-        {/* Photo Upload */}
+        <p>
+          Selling price must be between ₹{minPrice} and ₹{maxPrice}
+        </p>
+
         <label>Upload Product Photo</label>
         <input
           type="file"
@@ -202,7 +203,7 @@ export default function AddDProduct() {
           onChange={handleChange}
         />
 
-        <h3 style={{color: profit >= 0 ? "green" : "red"}}>
+        <h3 style={{ color: profit >= 0 ? "green" : "red" }}>
           Estimated Profit: ₹ {profit}
         </h3>
 
