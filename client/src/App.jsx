@@ -16,6 +16,7 @@ import DistributorDashboard from "./pages/DistributorDashboard";
 import RetailerDashboard from "./pages/RetailerDashboard";
 import Marketplace from "./pages/Marketplace";
 import Checkout from "./pages/Checkout";
+import SaveBoundary from "./pages/SaveBoundary";
 
 // ProtectedRoute component
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -62,6 +63,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/save-boundary" element={<SaveBoundary />} />
         <Route
           path="/retailer/dashboard"
           element={

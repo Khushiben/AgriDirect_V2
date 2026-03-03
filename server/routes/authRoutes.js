@@ -3,6 +3,7 @@ const router = express.Router();
 const upload = require("../middleware/uploadMiddleware");
 const { signup, login } = require("../controllers/authController"); // import login too
 const User = require("../models/User");
+const { protect } = require("../middleware/authMiddleware");
 
 // SIGNUP
 router.post("/signup", upload.single("licenseFile"), signup);
@@ -17,6 +18,26 @@ router.get("/user/:id", async (req, res) => {
     res.json(user);
   } catch (error) {
     res.status(500).json({ message: "Error fetching user" });
+  }
+});
+
+router.put("/save-boundary", protect, async (req, res) => {
+  try {
+    const { coordinates } = req.body;
+
+    const user = await User.findById(req.user._id);
+
+    user.farmBoundary = {
+      type: "Polygon",
+      coordinates: [coordinates],
+    };
+
+    await user.save();
+
+    res.json({ message: "Boundary saved successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error saving boundary" });
   }
 });
 

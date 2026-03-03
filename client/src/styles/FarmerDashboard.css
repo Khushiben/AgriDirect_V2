@@ -113,7 +113,24 @@
   border-radius: 12px;
   position: relative;
 }
+.farm-map-card .leaflet-container {
+  height: 300px;
+  width: 100%;
+  border-radius: 12px;
+}
+.edit-boundary-btn {
+  margin-top: 12px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  background-color: #2e7d32;
+  color: white;
+  cursor: pointer;
+}
 
+.edit-boundary-btn:hover {
+  background-color: #1b5e20;
+}
 .map-highlight {
   position: absolute;
   inset: 15px;

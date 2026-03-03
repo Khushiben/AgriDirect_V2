@@ -4,7 +4,8 @@ import { Link, useNavigate } from "react-router-dom";
 import AddProduct from "./AddProduct";
 import { useEffect, useState } from "react";
 import axios from "axios";
-
+import { MapContainer, TileLayer, Polygon } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
 
 const FarmerDashboard = ({ name, district }) => {
   // Mock data for crops - Replace with API data later
@@ -12,6 +13,7 @@ const FarmerDashboard = ({ name, district }) => {
   const [addedCrops, setAddedCrops] = useState([]);
   const [address, setAddress] = useState("");
   const [notification, setNotification] = useState("");
+  const [boundary, setBoundary] = useState(null);
   const [seenDistributorNotifs, setSeenDistributorNotifs] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem("seenDistributorNotifications") || "{}");
@@ -117,13 +119,20 @@ useEffect(() => {
       const res = await axios.get(
         `http://localhost:5000/api/auth/user/${storedUser.userId}`,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
 
-      setFarmer(res.data); // ✅ store full farmer object
+      setFarmer(res.data);
+
+      // ✅ Convert GeoJSON to Leaflet format
+      if (res.data.farmBoundary?.coordinates) {
+        const latlngs = res.data.farmBoundary.coordinates[0].map(
+          ([lng, lat]) => [lat, lng]
+        );
+        setBoundary(latlngs);
+      }
+
     } catch (error) {
       console.error("Error fetching farmer:", error);
     }
@@ -193,24 +202,30 @@ useEffect(() => {
           </aside>
 
           {/* Column 2: Farm Map */}
-       <section className="location-area">
+{/* Column 2: Farm Map */}
+<section className="location-area">
   <div className="farm-map-card">
-    <h4>Farm Location</h4>
-    <p className="farm-subtext">{address || "Loading location..."}</p>
 
-    {address && (
-      <iframe
-        title="farm-map"
-        width="100%"
-        height="250"
-        style={{ borderRadius: "10px", border: "none" }}
-        loading="lazy"
-        allowFullScreen
-        src={`https://www.google.com/maps?q=${encodeURIComponent(
-          address
-        )}&output=embed`}
-      ></iframe>
-    )}
+    <MapContainer
+      center={boundary ? boundary[0] : [22.9734, 78.6569]}
+      zoom={boundary ? 15 : 5}
+      style={{ height: "300px", borderRadius: "12px" }}
+    >
+      <TileLayer
+        attribution='&copy; OpenStreetMap contributors'
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
+
+      {boundary && <Polygon positions={boundary} />}
+    </MapContainer>
+
+    {/* ✅ ADD THIS BUTTON BELOW MAP */}
+    <Link to="/save-boundary">
+      <button className="edit-boundary-btn">
+        {boundary ? "Edit Farm Boundary" : "Add Farm Boundary"}
+      </button>
+    </Link>
+
   </div>
 </section>
 

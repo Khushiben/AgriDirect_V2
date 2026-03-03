@@ -20,7 +20,15 @@ const userSchema = new mongoose.Schema(
 
     licenseId: String,
     licenseFile: String,
-
+farmBoundary: {
+  type: {
+    type: String,
+    enum: ["Polygon"],
+  },
+  coordinates: {
+    type: [[[Number]]], // GeoJSON format
+  },
+},
     isVerified: {
       type: Boolean,
       default: false, // admin verifies later
