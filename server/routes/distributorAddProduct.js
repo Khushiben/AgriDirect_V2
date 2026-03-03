@@ -1,16 +1,19 @@
 // server/routes/distributorAddProductRoutes.js
 const express = require("express");
 const router = express.Router();
+const FarmerProduct = require("../models/AddProduct");  
 const AddProduct = require("../models/distributorAddProduct"); 
 const { protect } = require("../middleware/authMiddleware");
 const upload = require("../middleware/uploadMiddleware"); // ✅ use existing middleware
 
 // POST - distributor adds product
 router.post("/add", protect, upload.single("productImage"), async (req, res) => {
-  try {
+ try {
     if (req.user.role !== "distributor") {
       return res.status(403).json({ message: "Only distributors allowed" });
     }
+
+
 
     const {
       productId,
@@ -30,7 +33,9 @@ router.post("/add", protect, upload.single("productImage"), async (req, res) => 
       profit,
     } = req.body;
 
-    const product = await AddProduct.findById(productId);
+console.log("Received productId:", productId);
+    const product = await FarmerProduct.findById(productId);
+   console.log("Found product:", product);
     if (!product) return res.status(404).json({ message: "Product not found" });
 
     if (quantity > product.quantity)
