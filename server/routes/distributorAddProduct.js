@@ -8,12 +8,10 @@ const upload = require("../middleware/uploadMiddleware"); // ✅ use existing mi
 
 // POST - distributor adds product
 router.post("/add", protect, upload.single("productImage"), async (req, res) => {
- try {
+try {
     if (req.user.role !== "distributor") {
       return res.status(403).json({ message: "Only distributors allowed" });
     }
-
-
 
     const {
       productId,
@@ -32,10 +30,7 @@ router.post("/add", protect, upload.single("productImage"), async (req, res) => 
       otherCost,
       profit,
     } = req.body;
-
-console.log("Received productId:", productId);
     const product = await FarmerProduct.findById(productId);
-   console.log("Found product:", product);
     if (!product) return res.status(404).json({ message: "Product not found" });
 
     if (quantity > product.quantity)
