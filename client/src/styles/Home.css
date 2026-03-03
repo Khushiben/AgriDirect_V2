@@ -1,0 +1,161 @@
+/* Vertical border blocks */
+.vertical-border {
+  position: fixed;
+  top: 0;
+  width: 30px;
+  height: 100%;
+  background-color: rgba(255, 182, 193, 0.3);
+  z-index: -1;
+}
+
+.left {
+  left: 0;
+}
+
+.right {
+  right: 0;
+}
+
+@keyframes jigglyText {
+  0% { transform: translateY(0px); }
+  25% { transform: translateY(-3px); }
+  50% { transform: translateY(3px); }
+  75% { transform: translateY(-3px); }
+  100% { transform: translateY(0px); }
+}
+
+/* Background */
+body {
+  background: url('bg-image.png') no-repeat center center fixed;
+  background-size: cover;
+  background-attachment: fixed;
+  color: #2C3E50;
+  position: relative;
+}
+
+.background {
+  background: url('agri.webp') no-repeat center center/cover;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Hero Section */
+.hero {
+  text-align: center;
+  padding: 80px 20px;
+  background: #A9C46C;
+  color: white;
+}
+
+.hero h1 {
+  font-size: 36px;
+  margin-bottom: 10px;
+}
+
+.hero p {
+  font-size: 18px;
+  margin-bottom: 20px;
+}
+
+.cta-button {
+  display: inline-block;
+  padding: 10px 20px;
+  background: #2C3E50;
+  color: white;
+  text-decoration: none;
+  border-radius: 5px;
+  font-size: 18px;
+}
+
+/* Mission Section */
+.mission {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  background-color: #ffffff;
+  color: #2C3E50;
+}
+
+.mission img {
+  width: 40%;
+  max-width: 400px;
+  border-radius: 10px;
+  margin-right: 20px;
+  animation: jigglyText 0.5s ease-in-out 2;
+}
+
+.mission-content {
+  max-width: 600px;
+}
+
+.mission h2 {
+  font-size: 32px;
+  margin-bottom: 15px;
+}
+
+.mission p {
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+/* Features */
+.features {
+  display: flex;
+  justify-content: space-around;
+  padding: 50px 20px;
+  background-color: #ffffff;
+}
+
+.feature {
+  text-align: center;
+  width: 30%;
+}
+
+.feature img {
+  width: 80px;
+  height: 80px;
+  margin-bottom: 20px;
+  animation: jigglyText 0.5s ease-in 1;
+}
+
+.feature h3 {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.feature p {
+  font-size: 16px;
+  color: #000000;
+}
+
+/* How It Works */
+.how-it-works {
+  text-align: center;
+  padding: 60px 20px;
+  background-color: #F4FFC3;
+}
+
+.how-row {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 40px;
+  flex-wrap: wrap;
+}
+
+.how-text {
+  max-width: 600px;
+}
+
+.demo-container {
+  display: flex;
+  justify-content: center;
+}
+
+.macbook-frame {
+  background: #111;
+  border-radius: 20px;
+  padding: 12px;
+  margin-top: 50px;
+}
