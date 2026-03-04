@@ -110,11 +110,14 @@ const Checkout = () => {
       // ==============================
       else if (user.role === "retailer") {
 
-        await axios.post(
-          `http://localhost:5000/api/products/${product._id}/retailer/sell`,
-          { price: totalPrice },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+       await axios.post(
+  `http://localhost:5000/api/products/${product._id}/retailer/sell`,
+  { 
+    price: totalPrice,
+    quantity: buyQuantity
+  },
+  { headers: { Authorization: `Bearer ${token}` } }
+);
       }
 
       else {
@@ -123,8 +126,14 @@ const Checkout = () => {
       }
 
       setPaymentStatus("success");
-      alert("Payment successful!");
-      navigate("/marketplace");
+alert("Payment successful!");
+
+if (user.role === "distributor") {
+  navigate("/marketplace");
+} 
+else if (user.role === "retailer") {
+  navigate("/retailer/marketplace"); // make sure this matches your route
+}
 
     } catch (err) {
       console.error("Payment error:", err);

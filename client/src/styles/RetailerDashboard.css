@@ -1,18 +1,4 @@
-/* RetailerDashboard.css */
-
-.retailer-dashboard {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-  padding: 40px 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.retailer-dashboard h1 {
-  font-size: 3rem;
-  color: white;
-  font-weight: 700;
-  margin: 0;
+h1{
   text-align: center;
+  margin-top: 20px;
 }

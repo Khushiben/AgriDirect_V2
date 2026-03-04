@@ -33,7 +33,18 @@ const distributorPurchaseSchema = new mongoose.Schema(
     otherCost: { type: Number },
     profit: { type: Number },
     productImage: { type: String },
-    status: { type: String, default: "completed" },
+    status: { type: String, default: "IN_PROGRESS" },
+
+    // ✅ ADD THIS
+    blockchainHistory: [
+      {
+        action: String,
+        txHash: String,
+        actor: String,
+        price: Number,
+        timestamp: Date
+      }
+    ]
   },
   { timestamps: true }
 );

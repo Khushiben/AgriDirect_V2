@@ -4,6 +4,8 @@ const AddProduct = require("../models/AddProduct");
 const upload = require("../middleware/uploadMiddleware");
 const { protect } = require("../middleware/authMiddleware");
 const contract = require("../blockchain/contract");
+const DistributorProduct = require("../models/distributorAddProduct");
+const RetailerPurchase = require("../models/RetailerPurchase");
 
 // CREATE PRODUCT
 router.post("/add",protect, upload.single("image"), async (req, res) => {
@@ -308,8 +310,7 @@ router.post("/:id/record-distributor-sale", protect, async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
-
-//retailersale route
+// retailer sale route
 router.post("/:id/retailer/sell", protect, async (req, res) => {
   try {
 
@@ -317,11 +318,46 @@ router.post("/:id/retailer/sell", protect, async (req, res) => {
       return res.status(403).json({ message: "Only retailer allowed" });
     }
 
-    const product = await AddProduct.findById(req.params.id);
+    const product = await DistributorProduct.findById(req.params.id);
 
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
+
+    const buyQuantity = Number(req.body.quantity);
+
+    if (!buyQuantity || buyQuantity <= 0) {
+      return res.status(400).json({ message: "Invalid quantity" });
+    }
+
+    // 🚨 Check stock
+    if (buyQuantity > product.quantity) {
+      return res.status(400).json({ message: "Not enough stock available" });
+    }
+
+    // 🔥 Reduce quantity
+    product.quantity -= buyQuantity;
+
+    // ✅ If stock finished → mark completed
+    if (product.quantity === 0) {
+      product.status = "COMPLETED";
+    }
+
+    // 🔹 SAVE RETAILER PURCHASE RECORD
+    await RetailerPurchase.create({
+      product: product._id,
+      distributor: product.buyer,
+      retailer: req.user._id,
+      distributorName: product.buyerName,
+      retailerName: req.user.name,
+      variety: product.variety,
+      quantity: buyQuantity,
+      pricePerKg: product.sellingPrice,
+      totalPrice: req.body.price,
+
+      // ✅ ADDED THIS
+      productImage: product.productImage
+    });
 
     const tx = await contract.recordSale(
       product._id.toString(),
@@ -332,7 +368,7 @@ router.post("/:id/retailer/sell", protect, async (req, res) => {
     const receipt = await tx.wait();
 
     product.blockchainHistory.push({
-      action: "Reatiler Sale",   // change based on action
+      action: "Retailer Sale",
       txHash: receipt.hash,
       actor: req.user.name,
       price: req.body.price,
@@ -343,7 +379,9 @@ router.post("/:id/retailer/sell", protect, async (req, res) => {
 
     res.json({
       message: "Retailer sale recorded on blockchain",
-      txHash: receipt.hash
+      txHash: receipt.hash,
+      remainingQuantity: product.quantity,
+      status: product.status
     });
 
   } catch (error) {
@@ -351,5 +389,4 @@ router.post("/:id/retailer/sell", protect, async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
-
 module.exports = router;

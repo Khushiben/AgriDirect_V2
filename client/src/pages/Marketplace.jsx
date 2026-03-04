@@ -124,34 +124,39 @@ const closeDetails = () => setSelectedProduct(null);
   </button>
 )}
 
+{loggedInUserId === (crop.farmer && crop.farmer._id) && crop.quantity > 0 && (
+  <>
+    <button
+      className="action-btn"
+      onClick={() => openDistributorModal(crop)}
+      disabled={crop.distributor && crop.distributorApprovalStatus !== 'rejected'}
+    >
+      {crop.distributor && crop.distributorApprovalStatus !== 'rejected'
+        ? "Distributor Chosen"
+        : "Choose Distributor"}
+    </button>
 
-                {/* Farmer buttons remain unchanged */}
-                {loggedInUserId === (crop.farmer && crop.farmer._id) && (
-                  <>
-                    <button
-                      className="action-btn"
-                      onClick={() => openDistributorModal(crop)}
-                      disabled={crop.distributor && crop.distributorApprovalStatus !== 'rejected'}
-                    >
-                      {crop.distributor && crop.distributorApprovalStatus !== 'rejected'
-                        ? "Distributor Chosen"
-                        : "Choose Distributor"}
-                    </button>
-                    {crop.distributor && (
-                      <div style={{ marginTop: '4px', fontSize: '0.9em' }}>
-                        {crop.distributorApprovalStatus === 'pending' && (
-                          <span className="status-badge pending">Awaiting distributor approval</span>
-                        )}
-                        {crop.distributorApprovalStatus === 'approved' && (
-                          <span className="status-badge verified">Distributor approved</span>
-                        )}
-                        {crop.distributorApprovalStatus === 'rejected' && (
-                          <span className="status-badge rejected">Distributor rejected</span>
-                        )}
-                      </div>
-                    )}
-                  </>
-                )}
+    {crop.distributor && (
+      <div style={{ marginTop: '4px', fontSize: '0.9em' }}>
+        {crop.distributorApprovalStatus === 'pending' && (
+          <span className="status-badge pending">
+            Awaiting distributor approval
+          </span>
+        )}
+        {crop.distributorApprovalStatus === 'approved' && (
+          <span className="status-badge verified">
+            Distributor approved
+          </span>
+        )}
+        {crop.distributorApprovalStatus === 'rejected' && (
+          <span className="status-badge rejected">
+            Distributor rejected
+          </span>
+        )}
+      </div>
+    )}
+  </>
+)}
               </div>
             </div>
           </div>
