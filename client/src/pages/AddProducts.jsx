@@ -73,7 +73,6 @@ export default function AddDProduct() {
       data.append("quantity", formData.quantity);
       data.append("profit", profit);
       data.append("variety", purchase.variety);
-<<<<<<< HEAD
       data.append("productId", purchase.product?._id || purchase.product);
 
       if (formData.productImage)
@@ -91,17 +90,6 @@ export default function AddDProduct() {
           },
         }
       );
-=======
-      data.append("productId", purchase.product._id);
-      if (formData.productImage) data.append("productImage", formData.productImage);
-      const token = localStorage.getItem("token");
-      await axios.post("http://localhost:5000/api/distributor-add-product/add", data, {
-         headers: {
-         "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
-        },
-      });
->>>>>>> a48b96d8ab6cf705f56bf45f3d3d7cf7373a5e81
 
       alert("Distributor Product Added Successfully!");
       navigate("/distributor/dashboard");

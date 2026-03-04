@@ -7,7 +7,6 @@ const AddProduct = require("../models/distributorAddProduct");
 const { protect } = require("../middleware/authMiddleware");
 const upload = require("../middleware/uploadMiddleware");
 
-<<<<<<< HEAD
 // POST - distributor adds product to marketplace
 router.post(
   "/add",
@@ -98,69 +97,6 @@ router.post(
       console.error(err);
       res.status(500).json({ message: err.message || "Server error" });
     }
-=======
-// POST - distributor adds product
-router.post("/add", protect, upload.single("productImage"), async (req, res) => {
-try {
-    if (req.user.role !== "distributor") {
-      return res.status(403).json({ message: "Only distributors allowed" });
-    }
-
-    const {
-      productId,
-      variety,
-      quantity,
-      productForm,
-      cleaning,
-      stoneRemoval,
-      millingRequired,
-      purchasePrice,
-      sellingPrice,
-      transportCost,
-      loadingCost,
-      storageCost,
-      processingCost,
-      otherCost,
-      profit,
-    } = req.body;
-    const product = await FarmerProduct.findById(productId);
-    if (!product) return res.status(404).json({ message: "Product not found" });
-
-    if (quantity > product.quantity)
-      return res.status(400).json({ message: "Not enough stock" });
-
-    product.quantity -= Number(quantity);
-    await product.save();
-
-    const newPurchase = new AddProduct({
-      product: productId,
-      farmer: product.farmer,
-      buyer: req.user._id,
-      buyerName: req.user.name,
-      variety,
-      quantity,
-      productForm,
-      cleaning,
-      stoneRemoval,
-      millingRequired,
-      purchasePrice,
-      sellingPrice,
-      transportCost,
-      loadingCost,
-      storageCost,
-      processingCost,
-      otherCost,
-      profit,
-      productImage: req.file?.filename || "",
-    });
-
-    await newPurchase.save();
-
-    res.status(201).json({ message: "Distributor product added", purchase: newPurchase });
-  } catch (err) {
-    console.error("Error adding distributor product:", err);
-    res.status(500).json({ message: "Server error" });
->>>>>>> a48b96d8ab6cf705f56bf45f3d3d7cf7373a5e81
   }
 );
 
