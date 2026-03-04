@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import "../styles/RetailerDashboard.css";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";   // ✅ Added
 
 const RetailerDashboard = () => {
   const [purchases, setPurchases] = useState([]);
+  const navigate = useNavigate();   // ✅ Added
 
   // 🔥 Fetch retailer purchases
   const fetchRetailerPurchases = async () => {
@@ -51,10 +53,9 @@ const RetailerDashboard = () => {
 
                 <strong>{p.variety}</strong>
 
-                <p>Distributor: {p.
-distributorName}</p>
+                <p>Distributor: {p.distributorName}</p>
 
-                <p>₹ {p.pricePerKg} / kg</p>
+                <p>Price: ₹ {p.pricePerKg} / kg</p>
 
                 <p>Quantity: {p.quantity} kg</p>
 
@@ -63,6 +64,19 @@ distributorName}</p>
                 <span className="status-badge verified">
                   PURCHASED
                 </span>
+
+                {/* ✅ NEW BUTTON ADDED */}
+                <button
+                  className="action-btn buy-btn"
+                  style={{ marginTop: "10px" }}
+                  onClick={() =>
+                    navigate("/retailer-add-product", {
+                      state: { product: p }
+                    })
+                  }
+                >
+                  Add to Marketplace
+                </button>
 
               </div>
             </div>

@@ -18,6 +18,8 @@ import RetailerMarketplace from "./pages/RetailerMarketplace"; // ✅ ADDED
 import Checkout from "./pages/Checkout";
 
 import ProtectedRoute from "./components/ProtectedRoute";
+import RetailerAddProduct from "./pages/RetailerAddProduct";
+import ConsumerMarketplace from "./pages/ConsumerMarketplace";
 
 function App() {
   return (
@@ -68,6 +70,8 @@ function App() {
   path="/retailer/marketplace"
   element={<RetailerMarketplace />}
 />
+<Route path="/retailer-add-product" element={<RetailerAddProduct />} />
+<Route path="/consumer-marketplace" element={<ConsumerMarketplace />} />
 
         {/* CHECKOUT */}
         <Route

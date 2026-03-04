@@ -11,6 +11,8 @@ const distributorAddProduct = require("./routes/distributorAddProduct");
 const retailerProductRoutes = require("./routes/retailerProductRoutes");
 const distributorMarketplaceRoutes = require("./routes/distributorMarketplaceRoutes");
 const retailerPurchaseRoutes = require("./routes/retailerPurchaseRoutes");
+const retailerMarketplaceRoutes = require("./routes/retailerMarketplaceRoutes");
+
 
 const app = express();
 
@@ -41,6 +43,7 @@ app.use("/api/distributor-add-product", distributorAddProduct);
 app.use("/api", retailerProductRoutes);
 app.use("/api/distributortomarketplaces", distributorMarketplaceRoutes);
 app.use("/api/retailer-purchases", retailerPurchaseRoutes);
+app.use("/api/retailer-marketplace", retailerMarketplaceRoutes);
 
 
 

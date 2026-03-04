@@ -76,11 +76,13 @@ const Header = () => {
             <Link to="/">HOME</Link>
           </li>
 
-          <li>
+<li>
   <Link
     to={
       user?.role?.toLowerCase() === "retailer"
         ? "/retailer/marketplace"
+        : user?.role?.toLowerCase() === "consumer"
+        ? "/consumer-marketplace"
         : "/marketplace"
     }
   >
