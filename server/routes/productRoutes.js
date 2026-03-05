@@ -295,7 +295,7 @@ router.post("/:id/record-distributor-sale", protect, async (req, res) => {
 
     product.blockchainHistory.push({
       action: "Distributor Purchase",
-      txHash: receipt.hash,
+      txHash: receipt ? receipt.transactionHash : null,
       actor: req.user.name,
       price: req.body.price,
       timestamp: new Date()
@@ -303,7 +303,7 @@ router.post("/:id/record-distributor-sale", protect, async (req, res) => {
 
     await product.save();
 
-    res.json({ message: "Blockchain updated", txHash: receipt.hash });
+    res.json({ message: "Blockchain updated", txHash:receipt ? receipt.transactionHash : null,});
 
   } catch (error) {
     console.error("Blockchain error:", error);
@@ -369,7 +369,7 @@ router.post("/:id/retailer/sell", protect, async (req, res) => {
 
     product.blockchainHistory.push({
       action: "Retailer Sale",
-      txHash: receipt.hash,
+      txHash: receipt ? receipt.transactionHash : null,
       actor: req.user.name,
       price: req.body.price,
       timestamp: new Date()
@@ -379,7 +379,7 @@ router.post("/:id/retailer/sell", protect, async (req, res) => {
 
     res.json({
       message: "Retailer sale recorded on blockchain",
-      txHash: receipt.hash,
+      txHash: receipt ? receipt.transactionHash : null,
       remainingQuantity: product.quantity,
       status: product.status
     });
