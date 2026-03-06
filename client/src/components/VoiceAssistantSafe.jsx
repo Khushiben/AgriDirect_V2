@@ -520,18 +520,19 @@ const VoiceAssistantSafe = ({ availableFields = [], fieldOptions = {} }) => {
             if (pattern.source.includes('jan|feb|mar')) {
               // Month name patterns
               if (match[1].match(/\d+/)) {
-                // DD Month YYYY format
+                // DD Month YYYY format (e.g., "12 February 2019")
                 day = match[1];
                 month = match[2];
                 year = match[3];
               } else {
-                // Month DD YYYY format
+                // Month DD YYYY format (e.g., "February 12, 2019")
                 month = match[1];
                 day = match[2];
                 year = match[3];
               }
               
-              // Convert month name to number
+              // Convert month name to number - handle full names
+              const monthLower = month.toLowerCase();
               const monthNames = {
                 'jan': '01', 'january': '01',
                 'feb': '02', 'february': '02',
@@ -541,14 +542,14 @@ const VoiceAssistantSafe = ({ availableFields = [], fieldOptions = {} }) => {
                 'jun': '06', 'june': '06',
                 'jul': '07', 'july': '07',
                 'aug': '08', 'august': '08',
-                'sep': '09', 'september': '09',
+                'sep': '09', 'sept': '09', 'september': '09',
                 'oct': '10', 'october': '10',
                 'nov': '11', 'november': '11',
                 'dec': '12', 'december': '12'
               };
-              month = monthNames[month.toLowerCase()] || month;
-            } else if (pattern.source.includes('\\d{4}')) {
-              // YYYY-MM-DD or YYYY/MM/DD format
+              month = monthNames[monthLower] || month;
+            } else if (pattern.source.includes('\\d{4}') && pattern.source.indexOf('\\d{4}') === pattern.source.indexOf('(')) {
+              // YYYY-MM-DD or YYYY/MM/DD format (starts with year)
               year = match[1];
               month = match[2];
               day = match[3];
@@ -715,9 +716,10 @@ const VoiceAssistantSafe = ({ availableFields = [], fieldOptions = {} }) => {
         }
         
         // Look for dates with enhanced natural language
-        const dateValue = parseDate(command);
-        if (dateValue) {
+        const dateResult = parseDate(command);
+        if (dateResult && dateResult.html) {
           const lowerCommand = command.toLowerCase();
+          const dateValue = dateResult.html; // Use the HTML format yyyy-MM-dd
           
           // Check for harvest date mentions
           if (lowerCommand.includes('harvest') || lowerCommand.includes('harvesting')) {

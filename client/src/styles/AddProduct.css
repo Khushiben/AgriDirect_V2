@@ -66,6 +66,15 @@ input, select {
   width: 100%;
 }
 
+/* Compact inputs for date and number fields */
+input[type="date"],
+input[type="number"] {
+  width: 60%;
+  max-width: 200px;
+  padding: 6px 10px;
+  font-size: 14px;
+}
+
 .pest-box {
   background: #f9f9f9;
   padding: 15px;
@@ -95,5 +104,283 @@ input, select {
   flex-direction: column;
 }
 
+/* Side by side input rows */
+.input-row {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+}
 
+.input-half {
+  flex: 1;
+}
 
+.input-half label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.input-half input[type="date"],
+.input-half input[type="number"] {
+  width: 100%;
+  max-width: none;
+  padding: 10px;
+}
+
+/* Mandi Prices Section Styles */
+.mandi-prices-section {
+  background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
+  border: 2px solid #4CAF50;
+  border-radius: 10px;
+  padding: 12px;
+  margin: 15px 0;
+}
+
+.mandi-prices-title {
+  font-size: 14px;
+  font-weight: bold;
+  color: #2E7D32;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mandi-prices-title::before {
+  content: "📊";
+}
+
+.mandi-prices-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.mandi-card {
+  background: white;
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  border-left: 3px solid #4CAF50;
+  transition: all 0.3s ease;
+  opacity: 0;
+  transform: translateY(15px);
+}
+
+.mandi-card.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.mandi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.mandi-card-header {
+  font-size: 13px;
+  font-weight: bold;
+  color: #1B5E20;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mandi-card-header::before {
+  content: "📍";
+  font-size: 12px;
+}
+
+.mandi-commodity {
+  font-size: 11px;
+  color: #555;
+  margin-bottom: 4px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mandi-price-main {
+  font-size: 16px;
+  font-weight: bold;
+  color: #2E7D32;
+  margin-bottom: 2px;
+}
+
+.mandi-price-range {
+  font-size: 10px;
+  color: #666;
+}
+
+.mandi-updated {
+  font-size: 9px;
+  color: #888;
+  font-style: italic;
+  margin-top: 4px;
+}
+
+/* Skeleton Loading - Compact */
+.skeleton-card {
+  background: white;
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  border-left: 3px solid #ddd;
+}
+
+.skeleton-header {
+  height: 14px;
+  background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  width: 60%;
+}
+
+.skeleton-line {
+  height: 10px;
+  background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: 4px;
+  margin-bottom: 6px;
+}
+
+.skeleton-line.short {
+  width: 40%;
+}
+
+.skeleton-line.medium {
+  width: 70%;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Staggered Animation */
+.mandi-card.visible:nth-child(1) { animation: fadeInUp 0.4s ease 0s forwards; }
+.mandi-card.visible:nth-child(2) { animation: fadeInUp 0.4s ease 0.3s forwards; }
+.mandi-card.visible:nth-child(3) { animation: fadeInUp 0.4s ease 0.6s forwards; }
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* AI Suggestion Badge Styles */
+.ai-suggestion-badge {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: bold;
+  border: none;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.4);
+  animation: aiBadgeSlideIn 0.4s ease-out forwards;
+  white-space: nowrap;
+  z-index: 10;
+}
+
+@keyframes aiBadgeSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-50%) translateX(20px) scale(0.8);
+  }
+  50% {
+    transform: translateY(-50%) translateX(-5px) scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0) scale(1);
+  }
+}
+
+/* Price input animation when updated */
+.price-input {
+  transition: all 0.4s ease;
+}
+
+.price-input.price-updated {
+  background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
+  border-color: #4CAF50;
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+  animation: pricePulse 0.6s ease;
+}
+
+@keyframes pricePulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(76, 175, 80, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+  }
+}
+
+/* Price input container */
+.price-input-container {
+  position: relative;
+}
+
+/* Price revealed animation */
+.price-input.price-revealed {
+  animation: priceReveal 0.8s ease-out;
+  background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
+}
+
+@keyframes priceReveal {
+  0% {
+    opacity: 0.5;
+    transform: scale(0.98);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Glowing animation for price */
+.price-input.price-glowing {
+  animation: priceGlow 1.5s ease-in-out infinite;
+  border-color: #4CAF50;
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+}
+
+@keyframes priceGlow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.4), 0 0 10px rgba(76, 175, 80, 0.2);
+    border-color: #4CAF50;
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(76, 175, 80, 0.8), 0 0 30px rgba(76, 175, 80, 0.4);
+    border-color: #2E7D32;
+  }
+}

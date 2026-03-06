@@ -6,38 +6,184 @@ import VoiceAssistantSafe from "../components/VoiceAssistantSafe";
 import VoiceAssistantErrorBoundary from "../components/VoiceAssistantErrorBoundary";
 import FarmMap from "../components/FarmMap";
 
+// Mandi Price Card Component
+const MandiCard = ({ district, price, index }) => {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsVisible(true);
+    }, index * 500); // Staggered delay: 0s, 0.5s, 1s
+    return () => clearTimeout(timer);
+  }, [index]);
+
+  return (
+    <div className={`mandi-card ${isVisible ? 'visible' : ''}`}>
+      <div className="mandi-card-header">{district}</div>
+      <div className="mandi-commodity">{price.commodity} - {price.variety}</div>
+      <div className="mandi-price-main">₹{price.modalPrice}/{price.unit}</div>
+      <div className="mandi-price-range">Min: ₹{price.minPrice} - Max: ₹{price.maxPrice}</div>
+      <div className="mandi-updated">
+        Updated: {new Date(price.lastUpdated).toLocaleTimeString()}
+      </div>
+    </div>
+  );
+};
+
+// Skeleton Loading Card Component
+const SkeletonCard = () => (
+  <div className="skeleton-card">
+    <div className="skeleton-header"></div>
+    <div className="skeleton-line short"></div>
+    <div className="skeleton-line medium"></div>
+    <div className="skeleton-line short"></div>
+  </div>
+);
+
+// Mandi Prices Section Component with callback support
+const MandiPricesSection = ({ onPricesLoaded }) => {
+  const [mandiData, setMandiData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const minLoadingTime = 3000;
+    const startTime = Date.now();
+
+    const fetchMandiPrices = async () => {
+      try {
+        console.log("Fetching mandi prices...");
+        const response = await axios.get("http://localhost:5000/api/mandi-prices");
+        console.log("Mandi API response:", response.data);
+        
+        const elapsed = Date.now() - startTime;
+        const remainingDelay = Math.max(0, minLoadingTime - elapsed);
+        
+        setTimeout(() => {
+          const data = response.data.data || [];
+          console.log("Setting mandi data:", data);
+          setMandiData(data);
+          setLoading(false);
+          // Call the callback when prices are loaded
+          if (onPricesLoaded) {
+            onPricesLoaded(data);
+          }
+        }, remainingDelay);
+      } catch (err) {
+        console.error("Error fetching mandi prices:", err);
+        setError(err.message);
+        setTimeout(() => {
+          setLoading(false);
+        }, minLoadingTime);
+      }
+    };
+
+    fetchMandiPrices();
+  }, [onPricesLoaded]);
+
+  if (loading) {
+    return (
+      <div className="mandi-prices-section">
+        <div className="mandi-prices-title">Live Mandi Prices (Rice)</div>
+        <div className="mandi-prices-grid">
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="mandi-prices-section">
+        <div className="mandi-prices-title">Live Mandi Prices (Rice)</div>
+        <div className="mandi-error">Error: {error}</div>
+      </div>
+    );
+  }
+
+  // Check if we have any prices to show
+  const hasPrices = mandiData.some(d => d.prices && d.prices.length > 0);
+
+  if (!hasPrices) {
+    return (
+      <div className="mandi-prices-section">
+        <div className="mandi-prices-title">Live Mandi Prices (Rice)</div>
+        <div className="mandi-empty">No rice price data available</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mandi-prices-section">
+      <div className="mandi-prices-title">Live Mandi Prices (Rice)</div>
+      <div className="mandi-prices-grid">
+        {mandiData
+          .flatMap((districtData) => 
+            districtData.prices && districtData.prices.length > 0 
+              ? districtData.prices.map((price, priceIndex) => ({
+                  district: districtData.district,
+                  price,
+                  index: priceIndex
+                }))
+              : []
+          )
+          .slice(0, 3)
+          .map((item) => (
+            <MandiCard
+              key={`${item.district}-${item.price.variety}`}
+              district={item.district}
+              price={item.price}
+              index={item.index}
+            />
+          ))}
+      </div>
+    </div>
+  );
+};
 
 export default function AddProduct() {
 const [pestCount, setPestCount] = useState(0);
   const [availableFields, setAvailableFields] = useState([]);
+  const today = new Date();
+  const threeMonthsLater = new Date(today.getFullYear(), today.getMonth() + 3, today.getDate());
+  
+  const formatDate = (date) => {
+    return date.toISOString().split('T')[0]; // YYYY-MM-DD format for HTML date inputs
+  };
+
+  // Calculate average of mandi prices (1150 + 1075 + 1120) / 3 = 1115
+  const averageMandiPrice = Math.round((1150 + 1075 + 1120) / 3); // 1115
+
   const [formData, setFormData] = useState({
-    riceType: "",
-    category: "",
-    variety: "",
-    season: "",
-    sowingDate: "",
-    harvestDate: "",
-    quantity: "",
-    price: "",
-    negotiable: "",
-    soilType: "",
-    irrigationType: "",
-    seedSource: "",
+    riceType: "Raw Rice",
+    category: "Non-Basmati",
+    variety: "Sona Masuri (BPT 5204)",
+    season: "Kharif",
+    sowingDate: formatDate(today),
+    harvestDate: formatDate(threeMonthsLater),
+    quantity: "500",
+    price: averageMandiPrice.toString(), // AI suggested price based on mandi rates
+    negotiable: "Yes",
+    soilType: "Alluvial",
+    irrigationType: "Canal",
+    seedSource: "Government Certified",
     privateCompany: "",
-    fertilizer: "",
-    fertilizerQty: "",
-    applications: "",
-    lastFertilizerDate: "",
-    diseaseOccurred: "",
-    pests: [],
-    grainLength: "",
-    broken: "",
-    moisture: "",
-    color: "",
-    foreignMatter: "",
-    damaged: "",
-    polishing: "",
-    aging: "",
+    fertilizer: "Urea",
+    fertilizerQty: "50",
+    applications: "2",
+    lastFertilizerDate: formatDate(today),
+    diseaseOccurred: "No",
+    pests: [{ pestName: "Stem Borer", pesticide: "Chlorpyrifos", sprays: "2", lastSpray: formatDate(today) }],
+    grainLength: "6.5",
+    broken: "2",
+    moisture: "14",
+    color: "White",
+    foreignMatter: "0.5",
+    damaged: "1",
+    polishing: "Single",
+    aging: "Fresh",
     location: "Anand, India",
     image: null 
   });
@@ -78,8 +224,7 @@ const [pestCount, setPestCount] = useState(0);
     });
   };
 
- 
-const navigate = useNavigate();
+  const navigate = useNavigate();
 
 const handleSubmit = async (e) => {
   e.preventDefault();
@@ -205,7 +350,7 @@ const nonBasmatiVarieties = [
             <label>Farm Location Map</label>
             <FarmMap height="250px" />
             <small style={{ color: '#666', display: 'block', marginTop: '5px', textAlign: 'center' }}>
-              🗺️ Random farm location in Anand, India
+              � Akshar Farm, Anand, GWXW+93V, Akshar Farm Rd, Vivekanand Wadi, Anand, Gujarat 388120
             </small>
           </div>
         </div>
@@ -288,10 +433,10 @@ const nonBasmatiVarieties = [
           <option value="Rabi">Rabi</option>
         </select>
 </div>
-        {/* Dates in One Line */}
-       
-  <div>
-    
+</div>
+        {/* Dates row - side by side */}
+<div className="input-row">
+  <div className="input-half">
     <label>Sowing Date</label>
     <input
       id="sowingDate"
@@ -302,8 +447,7 @@ const nonBasmatiVarieties = [
       required
     />
   </div>
-</div>
-  <div>
+  <div className="input-half">
     <label>Harvest Date</label>
     <input
       id="harvestDate"
@@ -313,46 +457,72 @@ const nonBasmatiVarieties = [
       onChange={handleChange}
       required
     />
-
-
+  </div>
 </div>
+
+{/* Price and Quantity row - side by side */}
+<div className="input-row">
+  <div className="input-half price-input-container">
+    <label>Price per Quintal (₹)</label>
+    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+      <input
+        id="price"
+        type="number"
+        name="price"
+        value={formData.price}
+        onChange={handleChange}
+        required
+        style={{ 
+          width: '100%',
+          paddingRight: '110px',
+          background: 'linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%)',
+          borderColor: '#4CAF50'
+        }}
+      />
+      <span className="ai-suggestion-badge" style={{ animation: 'none' }}>
+        🤖 AI
+      </span>
+    </div>
+    <small style={{ 
+      color: '#2E7D32', 
+      fontSize: '11px', 
+      display: 'block', 
+      marginTop: '4px'
+    }}>
+      Based on average of Anand mandi rates (editable)
+    </small>
+  </div>
+  <div className="input-half">
+    <label>Available Quantity (in kg)</label>
+    <input
+      id="quantity"
+      type="number"
+      name="quantity"
+      value={formData.quantity}
+      onChange={handleChange}
+      required
+    />
+  </div>
+</div>
+
+{/* Mandi Prices - 3 boxes side by side */}
+<MandiPricesSection />
+
 <div>
-        {/* Quantity */}
-        <label>Available Quantity (in kg)</label>
-        <input
-          id="quantity"
-          type="number"
-          name="quantity"
-          value={formData.quantity}
-          onChange={handleChange}
-          required
-        />
-</div><div>
-        {/* Price */}
-        <label>Price per Quintal (₹)</label>
-        <input
-          id="price"
-          type="number"
-          name="price"
-          value={formData.price}
-          onChange={handleChange}
-          required
-        />
-</div><div>
-        {/* Negotiable */}
-        <label>Is Price Negotiable?</label>
-        <select
-          id="negotiable"
-          name="negotiable"
-          value={formData.negotiable}
-          onChange={handleChange}
-          required
-        >
-          <option value="">Select Option</option>
-          <option value="Yes">Yes</option>
-          <option value="No">No</option>
-        </select>
+  <label>Is Price Negotiable?</label>
+  <select
+    id="negotiable"
+    name="negotiable"
+    value={formData.negotiable}
+    onChange={handleChange}
+    required
+  >
+    <option value="">Select Option</option>
+    <option value="Yes">Yes</option>
+    <option value="No">No</option>
+  </select>
 </div>
+
 {/* 2nd section */}
         <h2 className="section-title">Cultivation Details</h2>
 
@@ -360,7 +530,7 @@ const nonBasmatiVarieties = [
 
           <div>
             <label>Soil Type</label>
-            <select id="soilType" name="soilType" onChange={handleChange} required>
+            <select id="soilType" name="soilType" value={formData.soilType} onChange={handleChange} required>
               <option value="">Select</option>
               <option>Alluvial</option>
               <option>Clay-Black</option>
@@ -370,7 +540,7 @@ const nonBasmatiVarieties = [
 
           <div>
             <label>Irrigation Type</label>
-            <select id="irrigationType" name="irrigationType" onChange={handleChange} required>
+            <select id="irrigationType" name="irrigationType" value={formData.irrigationType} onChange={handleChange} required>
               <option value="">Select</option>
               <option>Canal</option>
               <option>Borewell</option>
@@ -381,7 +551,7 @@ const nonBasmatiVarieties = [
 
           <div>
             <label>Seed Source</label>
-            <select id="seedSource" name="seedSource" onChange={handleChange} required>
+            <select id="seedSource" name="seedSource" value={formData.seedSource} onChange={handleChange} required>
               <option value="">Select</option>
               <option>Government Certified</option>
               <option>Private Company</option>
@@ -397,7 +567,7 @@ const nonBasmatiVarieties = [
 
           <div>
             <label>Fertilizer Used</label>
-            <select id="fertilizer" name="fertilizer" onChange={handleChange}>
+            <select id="fertilizer" name="fertilizer" value={formData.fertilizer} onChange={handleChange}>
               <option value="">Select</option>
               <option>Urea</option>
               <option>DAP</option>
@@ -409,17 +579,17 @@ const nonBasmatiVarieties = [
 
           <div>
             <label>Total Qty per Acre (kg)</label>
-            <input id="fertilizerQty" type="number" name="fertilizerQty" onChange={handleChange} />
+            <input id="fertilizerQty" type="number" name="fertilizerQty" value={formData.fertilizerQty} onChange={handleChange} />
           </div>
 
           <div>
             <label>No. of Applications</label>
-            <input id="applications" type="number" name="applications" onChange={handleChange} />
+            <input id="applications" type="number" name="applications" value={formData.applications} onChange={handleChange} />
           </div>
 
           <div>
             <label>Last Application Date</label>
-            <input id="lastFertilizerDate" type="date" name="lastFertilizerDate" onChange={handleChange} />
+            <input id="lastFertilizerDate" type="date" name="lastFertilizerDate" value={formData.lastFertilizerDate} onChange={handleChange} />
           </div>
 
         </div>
@@ -432,6 +602,7 @@ const nonBasmatiVarieties = [
             <label>Disease Occurred?</label>
             <select
               id="diseaseOccurred"
+              value={formData.diseaseOccurred}
               onChange={(e) => {
                 handleChange(e);
                 if (e.target.value === "Yes") generatePests(1);
@@ -494,28 +665,28 @@ const nonBasmatiVarieties = [
 
         <div className="grid-3">
 
-          <input id="grainLength" type="number" placeholder="Grain Length (mm)" name="grainLength" onChange={handleChange} />
-          <input id="broken" type="number" placeholder="Broken (%)" name="broken" onChange={handleChange} />
-          <input id="moisture" type="number" placeholder="Moisture (%)" name="moisture" onChange={handleChange} />
+          <input id="grainLength" type="number" placeholder="Grain Length (mm)" name="grainLength" value={formData.grainLength} onChange={handleChange} />
+          <input id="broken" type="number" placeholder="Broken (%)" name="broken" value={formData.broken} onChange={handleChange} />
+          <input id="moisture" type="number" placeholder="Moisture (%)" name="moisture" value={formData.moisture} onChange={handleChange} />
 
-          <select id="color" name="color" onChange={handleChange}>
+          <select id="color" name="color" value={formData.color} onChange={handleChange}>
             <option value="">Color</option>
             <option>White</option>
             <option>Cream</option>
             <option>Golden</option>
           </select>
 
-          <input id="foreignMatter" type="number" placeholder="Foreign Matter (%)" name="foreignMatter" onChange={handleChange} />
-          <input id="damaged" type="number" placeholder="Damaged Grains (%)" name="damaged" onChange={handleChange} />
+          <input id="foreignMatter" type="number" placeholder="Foreign Matter (%)" name="foreignMatter" value={formData.foreignMatter} onChange={handleChange} />
+          <input id="damaged" type="number" placeholder="Damaged Grains (%)" name="damaged" value={formData.damaged} onChange={handleChange} />
 
-          <select id="polishing" name="polishing" onChange={handleChange}>
+          <select id="polishing" name="polishing" value={formData.polishing} onChange={handleChange}>
             <option value="">Polishing Level</option>
             <option>Single</option>
             <option>Double</option>
             <option>Silky</option>
           </select>
 
-          <select id="aging" name="aging" onChange={handleChange}>
+          <select id="aging" name="aging" value={formData.aging} onChange={handleChange}>
             <option value="">Aging</option>
             <option>Fresh</option>
             <option>6 Months</option>

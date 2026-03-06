@@ -14,6 +14,7 @@ const retailerPurchaseRoutes = require("./routes/retailerPurchaseRoutes");
 const retailerMarketplaceRoutes = require("./routes/retailerMarketplaceRoutes");
 const aiRoutes = require("./routes/aiRoutes");
 const profileRoutes = require("./routes/profileRoutes");
+const { router: mandiPriceRoutes, initializeCache: initializeMandiCache } = require("./routes/mandiPriceRoutes");
 
 
 const app = express();
@@ -29,6 +30,9 @@ connectDB().then(async () => {
       console.log("ℹ️ No old index to drop");
     }
   }
+  
+  // Initialize mandi price cache after DB connection
+  await initializeMandiCache();
 });
 
 // Middleware
@@ -48,6 +52,7 @@ app.use("/api/retailer-purchases", retailerPurchaseRoutes);
 app.use("/api/retailer-marketplace", retailerMarketplaceRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/profile", profileRoutes);
+app.use("/api/mandi-prices", mandiPriceRoutes);
 
 
 
