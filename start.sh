@@ -3,6 +3,9 @@
 # AgriDirect V2 Startup Script
 echo "🌱 Starting AgriDirect V2..."
 
+# Set up trap to catch Ctrl+C and kill all background processes
+trap 'echo -e "\n🛑 Stopping all processes..."; kill $(jobs -p) 2>/dev/null; exit 0' INT
+
 # Check if Node.js is installed
 if ! command -v node &> /dev/null; then
     echo "❌ Node.js is not installed. Please install Node.js first."
@@ -39,12 +42,14 @@ cd ../client && npm install --legacy-peer-deps
 echo "🚀 Starting AgriDirect V2..."
 echo "🔧 Starting server on port 5000..."
 cd ../server && npm start &
+SERVER_PID=$!
 
 # Wait for server to start
 sleep 5
 
 echo "🎨 Starting client on port 5173..."
 cd ../client && npm run dev &
+CLIENT_PID=$!
 
 # Wait for client to start
 sleep 3
@@ -59,3 +64,8 @@ echo "   Consumer: consumer@demo.com / demo123"
 echo "   Distributor: distributor@demo.com / demo123"
 echo "   Retailer: retailer@demo.com / demo123"
 echo "   Admin: admin@demo.com / demo123"
+echo ""
+echo "⚠️  Press Ctrl+C to stop all services"
+
+# Wait for background processes or Ctrl+C
+wait

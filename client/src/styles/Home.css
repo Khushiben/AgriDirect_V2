@@ -54,14 +54,82 @@ body {
   margin-bottom: 20px;
 }
 
+.hero-buttons {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
 .cta-button {
   display: inline-block;
-  padding: 10px 20px;
-  background: #2C3E50;
+  padding: 12px 24px;
+  background: #28a745;
   color: white;
   text-decoration: none;
   border-radius: 5px;
-  font-size: 18px;
+  font-weight: bold;
+  transition: background 0.3s ease;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.cta-button:hover {
+  background: #218838;
+}
+
+.qr-scanner-button {
+  display: inline-block;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #4CAF50, #45a049);
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+}
+
+.qr-scanner-button:hover {
+  background: linear-gradient(135deg, #45a049, #3d8b40);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+}
+
+.qr-hint {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+  font-style: italic;
+  margin: 0;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.4;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .hero-buttons {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .cta-button,
+  .qr-scanner-button {
+    width: 100%;
+    max-width: 300px;
+  }
+  
+  .qr-hint {
+    font-size: 13px;
+    padding: 0 20px;
+  }
 }
 
 /* Mission Section */

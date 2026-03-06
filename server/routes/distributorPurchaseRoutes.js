@@ -66,7 +66,7 @@ router.post("/", protect, async (req, res) => {
 // GET all products bought by logged-in distributor
 router.get("/my-purchases", protect, async (req, res) => {
   try {
-    const distributorId = req.user.id;
+    const distributorId = req.user._id; // Fix: use _id instead of id
 
     const purchases = await DistributorPurchase.find({
       buyer: distributorId,

@@ -54,7 +54,7 @@ router.post("/upload-picture", protect, upload.single("profilePicture"), async (
     const user = await User.findByIdAndUpdate(
       userId,
       { profilePicture: profilePicturePath },
-      { new: true }
+      { returnDocument: 'after' }
     );
 
     if (!user) {

@@ -30,13 +30,32 @@ router.post("/add", protect, async (req, res) => {
 });
 router.get("/", async (req, res) => {
   try {
+    console.log("Fetching retailer marketplace products...");
+    
     const products = await RetailerMarketplace.find({
       status: "available"
-    }).sort({ createdAt: -1 });
+    })
+    .populate('retailer', 'name email')
+    .populate('originalPurchase')
+    .sort({ createdAt: -1 });
+
+    console.log(`Found ${products.length} retailer marketplace products`);
+    
+    // Debug: Log each product
+    products.forEach((product, index) => {
+      console.log(`Product ${index + 1}:`, {
+        id: product._id,
+        variety: product.variety,
+        quantity: product.quantity,
+        price: product.price,
+        status: product.status,
+        retailer: product.retailer?.name
+      });
+    });
 
     res.json(products);
   } catch (error) {
-    console.error(error);
+    console.error("Error fetching retailer marketplace products:", error);
     res.status(500).json({ message: "Server error" });
   }
 });

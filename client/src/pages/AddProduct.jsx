@@ -222,16 +222,17 @@ const [pestCount, setPestCount] = useState(0);
   const handleMandiPricesLoaded = (data) => {
     setMandiPricesLoaded(true);
     
-    // Calculate average from the loaded prices
+    // Calculate average from the loaded prices and convert from quintal to kg (1 quintal = 100 kg)
     const allPrices = data.flatMap(d => d.prices || []);
     if (allPrices.length > 0) {
-      const avg = Math.round(allPrices.reduce((sum, p) => sum + p.modalPrice, 0) / allPrices.length);
+      const avgQuintalPrice = Math.round(allPrices.reduce((sum, p) => sum + p.modalPrice, 0) / allPrices.length);
+      const avgKgPrice = (avgQuintalPrice / 100).toFixed(2); // Convert to per kg with 2 decimals
       
       // Wait 1 second after mandi cards appear, then set price ONCE
       setTimeout(() => {
         setFormData(prev => ({
           ...prev,
-          price: avg.toString()
+          price: avgKgPrice.toString()
         }));
         setPriceSet(true);
       }, 1000);
@@ -484,7 +485,7 @@ const nonBasmatiVarieties = [
 {/* Price and Quantity row - side by side */}
 <div className="input-row">
   <div className="input-half price-input-container">
-    <label>Price per Quintal (₹)</label>
+    <label>Price per kg (₹)</label>
     <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
       <input
         id="price"
