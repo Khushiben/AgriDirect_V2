@@ -1,0 +1,43 @@
+## 🎨 Frontend
+
+* **React 18.3.1** – Library to build the user interface (UI).
+* **Vite 7.3.1** – Fast tool to run and build the frontend app.
+* **React Router DOM 7.13.0** – Handles navigation between pages in React.
+* **Axios 1.13.5** – Sends HTTP requests to the backend API.
+
+## 🔧 Backend
+
+* **Node.js** – Runs JavaScript on the server.
+* **Express 5.2.1** – Framework to build backend APIs easily.
+* **MongoDB (Mongoose)** – Database to store application data.
+* **JWT** – Secure user authentication using tokens.
+* **Bcrypt.js** – Encrypts (hashes) passwords before storing them.
+
+## ⛓️ Blockchain
+
+* **Ethers.js 5.8.0** – Library to interact with the Ethereum blockchain.
+* **Smart Contracts** – Blockchain programs that manage supply chain transactions.
+
+## 🛠️ Development Tools
+
+* **ESLint** – Checks code for errors and best practices.
+* **CORS** – Allows frontend and backend to communicate across domains.
+* **Multer** – Handles file uploads (images, documents).
+* **dotenv** – Loads environment variables like API keys and secrets.
+
+## 📦 Architecture
+
+* **MERN Stack** – MongoDB + Express + React + Node.js full-stack app.
+* **RESTful API** – Backend endpoints follow REST standards.
+* **Component-Based Frontend** – UI built using reusable components.
+* **Microservices-Ready Backend** – Backend structured so services can be separated later.
+
+
+Demo logins: 
+    farmer@demo.com 
+    consumer@demo.com 
+    distributor@demo.com 
+    retailer@demo.com 
+    admin@demo.com 
+    
+    with password demo123.

@@ -1,0 +1,141 @@
+.setup-profile-page {
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.setup-profile-card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+  max-width: 480px;
+  width: 100%;
+}
+
+.setup-profile-card h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.5rem;
+  color: #333;
+}
+
+.setup-profile-subtitle {
+  color: #666;
+  font-size: 0.95rem;
+  margin-bottom: 1.5rem;
+}
+
+.setup-profile-upload-zone {
+  border: 2px dashed #4CAF50;
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: center;
+  background: #f9fff9;
+}
+
+.setup-profile-file-input {
+  display: none;
+}
+
+.setup-profile-file-label {
+  cursor: pointer;
+  display: inline-block;
+}
+
+.setup-profile-file-text {
+  color: #4CAF50;
+  font-weight: 600;
+}
+
+.setup-profile-file-text:hover {
+  text-decoration: underline;
+}
+
+.setup-profile-cropper-wrap {
+  position: relative;
+  width: 100%;
+  height: 320px;
+  margin-bottom: 1rem;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f0f0f0;
+}
+
+.setup-profile-zoom-label {
+  margin-bottom: 1rem;
+}
+
+.setup-profile-zoom-label label {
+  display: block;
+  font-size: 0.9rem;
+  color: #555;
+  margin-bottom: 0.25rem;
+}
+
+.setup-profile-zoom-slider {
+  width: 100%;
+  accent-color: #4CAF50;
+}
+
+.setup-profile-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.setup-profile-btn {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  font-size: 0.95rem;
+}
+
+.setup-profile-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.setup-profile-btn-primary {
+  background: #4CAF50;
+  color: white;
+}
+
+.setup-profile-btn-primary:hover:not(:disabled) {
+  background: #45a049;
+}
+
+.setup-profile-btn-secondary {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.setup-profile-btn-secondary:hover:not(:disabled) {
+  background: #e0e0e0;
+}
+
+.setup-profile-error {
+  color: #c62828;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.setup-profile-skip {
+  display: block;
+  width: 100%;
+  padding: 0.5rem;
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.setup-profile-skip:hover {
+  color: #555;
+  text-decoration: underline;
+}
