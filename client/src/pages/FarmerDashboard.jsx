@@ -305,7 +305,7 @@ const FarmerDashboard = ({ name, district }) => {
                       <div>
                         <strong>{crop.variety}</strong>
                         <p>₹ {crop.price}</p>
-                        <p>Added Quantity: ₹ {crop.quantity}</p>
+                        <p>Added Quantity: {crop.quantity}</p>
                         {/* STATUS BADGE placed here below image/details */}
                         {crop.status && (
                           <span className={`status-badge ${crop.status}`}>{crop.status.toUpperCase()}</span>

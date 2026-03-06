@@ -134,9 +134,7 @@ const ConsumerMarketplace = () => {
               <p><strong>Status:</strong> {selectedProduct.status}</p>
               <p>
                 <strong>Created:</strong>{" "}
-                {selectedProduct.createdAt
-                  ? new Date(selectedProduct.createdAt).toLocaleString()
-                  : "N/A"}
+                {selectedProduct.createdAt ? new Date(selectedProduct.createdAt).toLocaleString() : 'N/A'}
               </p>
               <p>
                 <strong>Updated:</strong>{" "}

@@ -6,6 +6,7 @@ const { protect } = require("../middleware/authMiddleware");
 const contract = require("../blockchain/contract");
 const DistributorProduct = require("../models/distributorAddProduct");
 const RetailerPurchase = require("../models/RetailerPurchase");
+const RetailerMarketplace = require("../models/RetailerMarketplace");
 
 // CREATE PRODUCT
 router.post("/add",protect, upload.single("image"), async (req, res) => {
@@ -344,7 +345,7 @@ router.post("/:id/retailer/sell", protect, async (req, res) => {
     }
 
     // 🔹 SAVE RETAILER PURCHASE RECORD
-    await RetailerPurchase.create({
+    const purchase = await RetailerPurchase.create({
       product: product._id,
       distributor: product.buyer,
       retailer: req.user._id,
@@ -354,11 +355,10 @@ router.post("/:id/retailer/sell", protect, async (req, res) => {
       quantity: buyQuantity,
       pricePerKg: product.sellingPrice,
       totalPrice: req.body.price,
-
-      // ✅ ADDED THIS
       productImage: product.productImage
     });
 
+    // 🔹 Record blockchain transaction
     const tx = await contract.recordSale(
       product._id.toString(),
       req.user.name,
@@ -366,16 +366,64 @@ router.post("/:id/retailer/sell", protect, async (req, res) => {
     );
 
     const receipt = await tx.wait();
+    const txHash = receipt?.transactionHash || null;
 
-    product.blockchainHistory.push({
+    const blockchainEntry = {
       action: "Retailer Sale",
-      txHash: receipt ? receipt.transactionHash : null,
+      txHash: txHash,
       actor: req.user.name,
       price: req.body.price,
       timestamp: new Date()
-    });
+    };
+
+    // 🔹 Store in DistributorProduct
+    if (!product.blockchainHistory) {
+      product.blockchainHistory = [];
+    }
+
+    product.blockchainHistory.push(blockchainEntry);
 
     await product.save();
+
+
+    // 🔹 ALSO STORE IN MAIN FARMER PRODUCT (AddProduct)
+    const mainProduct = await AddProduct.findById(product.product);
+
+    if (mainProduct) {
+
+      if (!mainProduct.blockchainHistory) {
+        mainProduct.blockchainHistory = [];
+      }
+
+      mainProduct.blockchainHistory.push(blockchainEntry);
+
+      if (txHash) {
+        mainProduct.blockchainTxHash = txHash;
+      }
+
+      await mainProduct.save();
+    }
+
+
+    // 🔹 ALSO STORE IN RETAILER MARKETPLACE
+    const retailerProduct = await RetailerMarketplace.findOne({
+      originalPurchase: purchase._id
+    });
+
+    if (retailerProduct) {
+
+      if (!retailerProduct.blockchainHistory) {
+        retailerProduct.blockchainHistory = [];
+      }
+
+      retailerProduct.blockchainHistory.push(blockchainEntry);
+
+      if (txHash) {
+        retailerProduct.blockchainHash = txHash;
+      }
+
+      await retailerProduct.save();
+    }
 
     res.json({
       message: "Retailer sale recorded on blockchain",
@@ -388,5 +436,4 @@ router.post("/:id/retailer/sell", protect, async (req, res) => {
     console.error("Retailer sale error:", error);
     res.status(500).json({ message: "Server error" });
   }
-});
-module.exports = router;
+});module.exports = router;
