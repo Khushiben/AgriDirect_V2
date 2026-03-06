@@ -41,3 +41,6 @@ Demo logins:
     admin@demo.com 
     
     with password demo123.
+
+    - /admin/dashboard fix latency
+    - /checkout?productId=69aadd07f32bbd06bfd6f6aa

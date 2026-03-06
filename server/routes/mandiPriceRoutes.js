@@ -113,7 +113,7 @@ async function processAndStoreMandiData(records) {
         unit: "Quintal",
         lastUpdated: new Date()
       },
-      { upsert: true, new: true }
+      { upsert: true, returnDocument: 'after' }
     );
     
     processedDistricts.add(districtName);

@@ -32,6 +32,27 @@ router.get("/my-products", protect, async (req, res) => {
   }
 });
 
+// GET - Public marketplace for retailers to see available products
+router.get("/", async (req, res) => {
+  try {
+    console.log("---- Public marketplace route hit ----");
+    
+    const products = await DistributorProduct.find({
+      status: "available"
+    })
+      .populate("distributor", "name email")
+      .populate("product", "variety image")
+      .sort({ createdAt: -1 });
+
+    console.log(`Found ${products.length} available distributor products for retailers`);
+    
+    res.json(products);
+  } catch (error) {
+    console.error("Error fetching public marketplace products:", error);
+    res.status(500).json({ message: "Failed to load marketplace products" });
+  }
+});
+
 // GET single distributor marketplace product by ID
 router.get("/:id", async (req, res) => {
   try {

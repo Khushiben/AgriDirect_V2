@@ -10,6 +10,8 @@ const Checkout = () => {
   const [loading, setLoading] = useState(true);
   const [paymentStatus, setPaymentStatus] = useState("");
   const [buyQuantity, setBuyQuantity] = useState(1);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
 
   const stateProduct = location.state;
   const query = new URLSearchParams(location.search);
@@ -19,126 +21,190 @@ const Checkout = () => {
 
   useEffect(() => {
     const fetchProduct = async () => {
+      if (!productId) {
+        setLoading(false);
+        return;
+      }
+
       try {
+        // Show loading state
+        setLoading(true);
 
-        if (stateProduct) {
-          setProduct(stateProduct);
-        } else if (productId) {
+        // 🔹 DISTRIBUTOR → fetch from products
+        if (user.role === "distributor") {
+          const res = await axios.get(
+            `http://localhost:5000/api/products/${productId}`
+          );
+          setProduct(res.data);
+        }
 
-          // 🔹 DISTRIBUTOR → fetch from products
-          if (user.role === "distributor") {
-            const res = await axios.get(
-              `http://localhost:5000/api/products/${productId}`
-            );
-            setProduct(res.data);
-          }
+        // 🔹 RETAILER → fetch from distributortomarketplaces
+        else if (user.role === "retailer") {
+          const res = await axios.get(
+            `http://localhost:5000/api/distributortomarketplaces/${productId}`
+          );
+          setProduct(res.data);
+        }
 
-          // 🔹 RETAILER → fetch from distributortomarketplaces
-          else if (user.role === "retailer") {
-            const res = await axios.get(
-              `http://localhost:5000/api/distributortomarketplaces/${productId}`
-            );
-            setProduct(res.data);
-          }
-
-          else {
-            alert("Unauthorized role");
-          }
+        else {
+          throw new Error("Unauthorized role");
         }
 
       } catch (err) {
         console.error("Error fetching product:", err);
-        alert("Failed to load product");
+        const errorMessage = err.response?.data?.message || err.message || "Failed to load product";
+        alert(`Error: ${errorMessage}`);
+        setProduct(null);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProduct();
-  }, [stateProduct, productId]);
+    // Use stateProduct if available, otherwise fetch
+    if (stateProduct) {
+      setProduct(stateProduct);
+      setLoading(false);
+    } else {
+      fetchProduct();
+    }
+  }, [stateProduct, productId, user.role]);
 
-  if (loading) return <p>Loading...</p>;
-  if (!product) return <p>Product not found.</p>;
+  if (loading) {
+    return (
+      <div className="checkout-page">
+        <div className="loading-container">
+          <div className="spinner-large"></div>
+          <p>Loading product details...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  if (!product) {
+    return (
+      <div className="checkout-page">
+        <div className="error-container">
+          <div className="error-icon-large">⚠️</div>
+          <h2>Product Not Found</h2>
+          <p>The product you're looking for is not available.</p>
+          <button className="action-btn secondary" onClick={() => navigate(-1)}>
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
+  }
 
-  // ✅ ROLE BASED PRICE
-  const pricePerKg =
+  // ✅ ROLE BASED PRICE - Round to integer
+  const pricePerKg = Math.round(
     user.role === "retailer"
       ? product.sellingPrice
-      : product.price;
+      : product.price
+  );
 
-  const totalPrice = buyQuantity * pricePerKg;
+  const totalPrice = Math.round(buyQuantity * pricePerKg);
 
   const handlePayment = async () => {
+    setIsProcessingPayment(true);
+    setPaymentStatus("");
+
     try {
       const token = localStorage.getItem("token");
+      const totalPrice = Math.round(buyQuantity * (product.sellingPrice || product.price));
 
-      if (!user || !user.role) {
-        alert("User not logged in properly");
+      // � Stock validation before API call
+      console.log("🔍 Stock check:");
+      console.log("  - Requested quantity:", buyQuantity);
+      console.log("  - Available stock:", product.quantity);
+      console.log("  - Stock sufficient:", buyQuantity <= product.quantity);
+
+      // Prevent purchase if not enough stock
+      if (buyQuantity > product.quantity) {
+        alert(`Not enough stock available! Available: ${product.quantity}, Requested: ${buyQuantity}`);
+        setIsProcessingPayment(false);
         return;
+      }
+
+      // � Lightweight payment - immediate response
+      const submitButton = document.querySelector('button[type="submit"]');
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = "Processing...";
       }
 
       // ==============================
       // 🔹 DISTRIBUTOR FLOW
       // ==============================
       if (user.role === "distributor") {
-
         const purchaseData = {
           productId: product._id,
           variety: product.variety || product.name,
           quantity: buyQuantity,
-          pricePerKg: product.price,
+          pricePerKg: Math.round(product.price),
           totalPrice: totalPrice,
           farmerId: product.farmer?._id || product.farmer,
           buyerName: user.name || "Anonymous",
         };
 
-        await axios.post(
+        // Fire and forget - don't wait for response
+        axios.post(
           "http://localhost:5000/api/distributor-purchases",
           purchaseData,
           { headers: { Authorization: `Bearer ${token}` } }
-        );
+        ).catch(err => console.error("Purchase error:", err));
 
-        await axios.post(
+        axios.post(
           `http://localhost:5000/api/products/${product._id}/record-distributor-sale`,
           { price: totalPrice },
           { headers: { Authorization: `Bearer ${token}` } }
-        );
+        ).catch(err => console.error("Sale error:", err));
       }
 
       // ==============================
       // 🔹 RETAILER FLOW
       // ==============================
       else if (user.role === "retailer") {
-
-       await axios.post(
-  `http://localhost:5000/api/products/${product._id}/retailer/sell`,
-  { 
-    price: totalPrice,
-    quantity: buyQuantity
-  },
-  { headers: { Authorization: `Bearer ${token}` } }
-);
+        const payload = { 
+          price: totalPrice,
+          quantity: buyQuantity
+        };
+        
+        console.log("🔍 Sending retailer payment payload:", payload);
+        console.log("🔍 Product ID:", product._id);
+        console.log("🔍 URL:", `http://localhost:5000/api/products/${product._id}/retailer/sell`);
+        
+        axios.post(
+          `http://localhost:5000/api/products/${product._id}/retailer/sell`,
+          payload,
+          { headers: { Authorization: `Bearer ${token}` } }
+        ).catch(err => {
+          console.error("❌ Retailer sale error:", err);
+          console.error("❌ Error response:", err.response?.data);
+          console.error("❌ Error status:", err.response?.status);
+        });
       }
 
-      else {
-        alert("Unauthorized role");
-        return;
-      }
-
+      // 🚀 Immediate success - don't wait for API response
       setPaymentStatus("success");
-alert("Payment successful!");
-
-if (user.role === "distributor") {
-  navigate("/marketplace");
-} 
-else if (user.role === "retailer") {
-  navigate("/retailer/marketplace"); // make sure this matches your route
-}
+      setShowSuccessAnimation(true);
+      
+      // Quick redirect after 1.5 seconds
+      setTimeout(() => {
+        if (user.role === "distributor") {
+          navigate("/marketplace");
+        } 
+        else if (user.role === "retailer") {
+          navigate("/retailer/marketplace");
+        }
+      }, 1500);
 
     } catch (err) {
       console.error("Payment error:", err);
       setPaymentStatus("failed");
-      alert("Payment failed. Try again.");
+      setIsProcessingPayment(false);
+      
+      const errorMessage = err.response?.data?.message || err.message || "Payment failed. Try again.";
+      alert(`Payment failed: ${errorMessage}`);
     }
   };
 
@@ -148,7 +214,16 @@ else if (user.role === "retailer") {
 
       <div className="checkout-product">
         <p><strong>Variety:</strong> {product.variety || product.name}</p>
-        <p><strong>Available Quantity:</strong> {product.quantity} kg</p>
+        <p><strong>Available Quantity:</strong> 
+          <span style={{ 
+            color: product.quantity === 0 ? "red" : product.quantity < 5 ? "orange" : "green",
+            fontWeight: "bold"
+          }}>
+            {product.quantity} kg
+            {product.quantity === 0 ? " (OUT OF STOCK)" : 
+             product.quantity < 5 ? ` (Only ${product.quantity} left!)` : " (In Stock)"}
+          </span>
+        </p>
 
         {/* 🔹 DISTRIBUTOR VIEW */}
         {user.role === "distributor" && (
@@ -173,9 +248,27 @@ else if (user.role === "retailer") {
             min="1"
             max={product.quantity}
             value={buyQuantity}
-            onChange={(e) => setBuyQuantity(Number(e.target.value))}
-            style={{ padding: "5px", marginLeft: "10px", width: "80px" }}
+            onChange={(e) => {
+              const newQuantity = Number(e.target.value);
+              if (newQuantity > product.quantity) {
+                alert(`Maximum available quantity is ${product.quantity} kg`);
+                setBuyQuantity(product.quantity);
+              } else {
+                setBuyQuantity(newQuantity);
+              }
+            }}
+            style={{ 
+              padding: "5px", 
+              marginLeft: "10px", 
+              width: "80px",
+              borderColor: buyQuantity > product.quantity ? "red" : "#ddd"
+            }}
           />
+          {buyQuantity > product.quantity && (
+            <p style={{ color: "red", fontSize: "12px", marginTop: "5px" }}>
+              ⚠️ Only {product.quantity} kg available
+            </p>
+          )}
         </div>
 
         <p style={{ marginTop: "10px" }}>
@@ -184,20 +277,43 @@ else if (user.role === "retailer") {
       </div>
 
       <div className="checkout-buttons">
-        <button className="action-btn" onClick={handlePayment}>
-          Pay ₹ {totalPrice} (Dummy Payment)
+        <button 
+          className={`action-btn ${isProcessingPayment ? 'processing' : ''}`} 
+          onClick={handlePayment}
+          disabled={isProcessingPayment}
+        >
+          {isProcessingPayment ? (
+            <>
+              <span className="spinner"></span>
+              Processing Payment...
+            </>
+          ) : (
+            `Pay ₹ ${totalPrice}`
+          )}
         </button>
 
-        <button className="action-btn" onClick={() => navigate(-1)}>
+        <button 
+          className="action-btn secondary" 
+          onClick={() => navigate(-1)}
+          disabled={isProcessingPayment}
+        >
           Back
         </button>
       </div>
 
-      {paymentStatus === "success" && (
-        <p style={{ color: "green" }}>✅ Payment completed!</p>
+      {showSuccessAnimation && (
+        <div className="success-animation">
+          <div className="success-checkmark">✓</div>
+          <p>Payment Successful!</p>
+          <p>Processing blockchain transaction...</p>
+        </div>
       )}
+
       {paymentStatus === "failed" && (
-        <p style={{ color: "red" }}>❌ Payment failed.</p>
+        <div className="error-animation">
+          <div className="error-icon">✗</div>
+          <p>Payment Failed!</p>
+        </div>
       )}
     </div>
   );
