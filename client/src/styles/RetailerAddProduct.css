@@ -1,0 +1,53 @@
+.retailer-add-container {
+  max-width: 500px;
+  margin: 60px auto;
+  padding: 30px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+.retailer-add-container h2 {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.retailer-add-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.retailer-add-form input {
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+}
+
+.retailer-add-form input:focus {
+  outline: none;
+  border-color: #4caf50;
+}
+
+.total-price-box {
+  margin-top: 10px;
+  font-weight: bold;
+  color: #2e7d32;
+  font-size: 16px;
+}
+
+.retailer-add-form button {
+  padding: 12px;
+  background: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+.retailer-add-form button:hover {
+  background: #388e3c;
+}
