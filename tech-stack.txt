@@ -44,3 +44,5 @@ Demo logins:
 
     - /admin/dashboard fix latency
     - /checkout?productId=69aadd07f32bbd06bfd6f6aa
+
+    - app.route(/*) only refreshes data 
