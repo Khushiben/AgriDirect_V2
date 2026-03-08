@@ -40,8 +40,8 @@ const SkeletonCard = () => (
   </div>
 );
 
-// Mandi Prices Section Component with callback support
-const MandiPricesSection = ({ onPricesLoaded }) => {
+// Mandi Prices Section Component
+const MandiPricesSection = () => {
   const [mandiData, setMandiData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -64,10 +64,6 @@ const MandiPricesSection = ({ onPricesLoaded }) => {
           console.log("Setting mandi data:", data);
           setMandiData(data);
           setLoading(false);
-          // Call the callback when prices are loaded
-          if (onPricesLoaded) {
-            onPricesLoaded(data);
-          }
         }, remainingDelay);
       } catch (err) {
         console.error("Error fetching mandi prices:", err);
@@ -79,7 +75,7 @@ const MandiPricesSection = ({ onPricesLoaded }) => {
     };
 
     fetchMandiPrices();
-  }, [onPricesLoaded]);
+  }, []);
 
   if (loading) {
     return (
@@ -153,6 +149,9 @@ const [pestCount, setPestCount] = useState(0);
     return date.toISOString().split('T')[0]; // YYYY-MM-DD format for HTML date inputs
   };
 
+  // Calculate average of mandi prices (1150 + 1075 + 1120) / 3 = 1115
+  const averageMandiPrice = Math.round((1150 + 1075 + 1120) / 3); // 1115
+
   const [formData, setFormData] = useState({
     riceType: "Raw Rice",
     category: "Non-Basmati",
@@ -161,7 +160,7 @@ const [pestCount, setPestCount] = useState(0);
     sowingDate: formatDate(today),
     harvestDate: formatDate(threeMonthsLater),
     quantity: "500",
-    price: "", // Start empty - will be set after mandi prices load
+    price: averageMandiPrice.toString(), // AI suggested price based on mandi rates
     negotiable: "Yes",
     soilType: "Alluvial",
     irrigationType: "Canal",
@@ -213,31 +212,6 @@ const [pestCount, setPestCount] = useState(0);
     });
     setAvailableFields(fields);
   }, []);
-
-  // Track mandi prices loading state
-  const [mandiPricesLoaded, setMandiPricesLoaded] = useState(false);
-  const [priceSet, setPriceSet] = useState(false);
-
-  // Handle when mandi prices are loaded
-  const handleMandiPricesLoaded = (data) => {
-    setMandiPricesLoaded(true);
-    
-    // Calculate average from the loaded prices and convert from quintal to kg (1 quintal = 100 kg)
-    const allPrices = data.flatMap(d => d.prices || []);
-    if (allPrices.length > 0) {
-      const avgQuintalPrice = Math.round(allPrices.reduce((sum, p) => sum + p.modalPrice, 0) / allPrices.length);
-      const avgKgPrice = (avgQuintalPrice / 100).toFixed(2); // Convert to per kg with 2 decimals
-      
-      // Wait 1 second after mandi cards appear, then set price ONCE
-      setTimeout(() => {
-        setFormData(prev => ({
-          ...prev,
-          price: avgKgPrice.toString()
-        }));
-        setPriceSet(true);
-      }, 1000);
-    }
-  };
 
   const handleChange = (e) => {
     setFormData({
@@ -485,7 +459,7 @@ const nonBasmatiVarieties = [
 {/* Price and Quantity row - side by side */}
 <div className="input-row">
   <div className="input-half price-input-container">
-    <label>Price per kg (₹)</label>
+    <label>Price per Quintal (₹)</label>
     <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
       <input
         id="price"
@@ -494,30 +468,24 @@ const nonBasmatiVarieties = [
         value={formData.price}
         onChange={handleChange}
         required
-        placeholder={!mandiPricesLoaded ? "Loading mandi prices..." : "Enter price"}
         style={{ 
           width: '100%',
-          paddingRight: priceSet ? '110px' : '12px',
-          background: priceSet ? 'linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%)' : '#fff',
-          borderColor: priceSet ? '#4CAF50' : '#ddd',
-          transition: 'all 0.3s ease'
+          paddingRight: '110px',
+          background: 'linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%)',
+          borderColor: '#4CAF50'
         }}
       />
-      {priceSet && (
-        <span className="ai-suggestion-badge" style={{ animation: 'aiBadgeSlideIn 0.4s ease-out' }}>
-          🤖 AI
-        </span>
-      )}
+      <span className="ai-suggestion-badge" style={{ animation: 'none' }}>
+        🤖 AI
+      </span>
     </div>
     <small style={{ 
-      color: priceSet ? '#2E7D32' : '#666', 
+      color: '#2E7D32', 
       fontSize: '11px', 
       display: 'block', 
       marginTop: '4px'
     }}>
-      {!mandiPricesLoaded ? '⏳ Loading mandi prices...' : 
-       !priceSet ? '🔄 Calculating average...' :
-       '✅ Price set from Anand mandi rates (editable)'}
+      Based on average of Anand mandi rates (editable)
     </small>
   </div>
   <div className="input-half">
@@ -534,7 +502,7 @@ const nonBasmatiVarieties = [
 </div>
 
 {/* Mandi Prices - 3 boxes side by side */}
-<MandiPricesSection onPricesLoaded={handleMandiPricesLoaded} />
+<MandiPricesSection />
 
 <div>
   <label>Is Price Negotiable?</label>

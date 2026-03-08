@@ -51,7 +51,7 @@ export default function AddDProduct() {
 
     const totalSelling = Number(formData.sellingPrice);
 
-    setProfit((totalSelling - totalCost).toFixed(2));
+    setProfit(totalSelling - totalCost);
   }, [formData]);
 
   const handleSubmit = async (e) => {

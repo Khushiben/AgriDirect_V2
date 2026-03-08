@@ -57,13 +57,6 @@ const AdminDashboard = () => {
 
     try {
       const token = localStorage.getItem("token");
-      
-      // Show loading state
-      const submitButton = e.target.querySelector('button[type="submit"]');
-      if (submitButton) {
-        submitButton.disabled = true;
-        submitButton.textContent = "Approving...";
-      }
 
       const res = await axios.put(
         `http://localhost:5000/api/products/admin/approve/${marketplaceProduct._id}`,
@@ -80,34 +73,12 @@ const AdminDashboard = () => {
         }
       );
 
-      // Handle response
-      if (res.data.queued) {
-        alert(`Product approved! Transaction queued: ${res.data.txHash}`);
-      } else {
-        alert("Product added to marketplace successfully!");
-      }
-      
+      alert("Product added to marketplace successfully!");
       closeMarketplaceForm();
+      // update local list or refresh
       fetchAllProducts();
-      
-      // Reset button state
-      if (submitButton) {
-        submitButton.disabled = false;
-        submitButton.textContent = "Approve for Marketplace";
-      }
     } catch (error) {
       console.error("Marketplace approval error:", error);
-      
-      // Show detailed error message
-      const errorMessage = error.response?.data?.message || error.message || "Failed to approve product";
-      alert(`Marketplace approval error: ${errorMessage}`);
-      
-      // Reset button state
-      const submitButton = e.target.querySelector('button[type="submit"]');
-      if (submitButton) {
-        submitButton.disabled = false;
-        submitButton.textContent = "Approve for Marketplace";
-      }
     }
   };
 

@@ -1,17 +1,11 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import QRScanner from "../components/QRScanner";
-import ProductTraceability from "../components/ProductTraceability";
 import "../styles/Marketplace.css";
-import "../styles/QRScannerButton.css";
 
 const ConsumerMarketplace = () => {
   const [products, setProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [showQRScanner, setShowQRScanner] = useState(false);
-  const [showTraceability, setShowTraceability] = useState(false);
-  const [scannedProduct, setScannedProduct] = useState(null);
   const navigate = useNavigate();
 
   const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
@@ -37,36 +31,8 @@ const ConsumerMarketplace = () => {
     navigate(`/checkout?productId=${product._id}`);
   };
 
-  const handleQRScanSuccess = (productData) => {
-    setScannedProduct(productData);
-    setShowQRScanner(false);
-    setShowTraceability(true);
-  };
-
-  const closeQRScanner = () => {
-    setShowQRScanner(false);
-  };
-
-  const closeTraceability = () => {
-    setShowTraceability(false);
-    setScannedProduct(null);
-  };
-
   return (
     <div className="marketplace-page">
-      {/* QR Scanner Button */}
-      <div className="qr-scanner-section">
-        <button 
-          className="qr-scanner-btn"
-          onClick={() => setShowQRScanner(true)}
-        >
-          📱 Scan QR Code
-        </button>
-        <p className="qr-scanner-hint">
-          Scan product QR codes to verify authenticity and trace origin
-        </p>
-      </div>
-
       <marquee
         behavior="scroll"
         direction="left"
@@ -168,7 +134,9 @@ const ConsumerMarketplace = () => {
               <p><strong>Status:</strong> {selectedProduct.status}</p>
               <p>
                 <strong>Created:</strong>{" "}
-                {selectedProduct.createdAt ? new Date(selectedProduct.createdAt).toLocaleString() : 'N/A'}
+                {selectedProduct.createdAt
+                  ? new Date(selectedProduct.createdAt).toLocaleString()
+                  : "N/A"}
               </p>
               <p>
                 <strong>Updated:</strong>{" "}
@@ -179,22 +147,6 @@ const ConsumerMarketplace = () => {
             </div>
           </div>
         </div>
-      )}
-
-      {/* QR Scanner Modal */}
-      {showQRScanner && (
-        <QRScanner 
-          onScanSuccess={handleQRScanSuccess}
-          onClose={closeQRScanner}
-        />
-      )}
-
-      {/* Product Traceability Modal */}
-      {showTraceability && scannedProduct && (
-        <ProductTraceability 
-          productData={scannedProduct}
-          onClose={closeTraceability}
-        />
       )}
     </div>
   );

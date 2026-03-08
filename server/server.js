@@ -1,0 +1,69 @@
+// server/server.js
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+
+const authRoutes = require("./routes/authRoutes");
+const productRoutes = require("./routes/productRoutes");
+const distributorPurchaseRoutes = require("./routes/distributorPurchaseRoutes");
+const connectDB = require("./config/db");
+const distributorAddProduct = require("./routes/distributorAddProduct");
+const retailerProductRoutes = require("./routes/retailerProductRoutes");
+const distributorMarketplaceRoutes = require("./routes/distributorMarketplaceRoutes");
+const retailerPurchaseRoutes = require("./routes/retailerPurchaseRoutes");
+const retailerMarketplaceRoutes = require("./routes/retailerMarketplaceRoutes");
+const aiRoutes = require("./routes/aiRoutes");
+const profileRoutes = require("./routes/profileRoutes");
+const { router: mandiPriceRoutes, initializeCache: initializeMandiCache } = require("./routes/mandiPriceRoutes");
+
+
+const app = express();
+
+// DB
+connectDB().then(async () => {
+  try {
+    const User = require("./models/User");
+    await User.collection.dropIndex("email_1");
+    console.log("✅ Old email unique index dropped");
+  } catch (err) {
+    if (!err.message.includes("index not found")) {
+      console.log("ℹ️ No old index to drop");
+    }
+  }
+  
+  // Initialize mandi price cache after DB connection
+  await initializeMandiCache();
+});
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use("/uploads", express.static("uploads"));
+
+// Routes
+app.use("/api/auth", authRoutes);
+app.use("/api/products", productRoutes);
+app.use("/api/distributor-purchases", distributorPurchaseRoutes);
+app.use("/api/distributor-add-product", distributorAddProduct);
+app.use("/api", retailerProductRoutes);
+app.use("/api/distributortomarketplaces", distributorMarketplaceRoutes);
+app.use("/api/retailer-purchases", retailerPurchaseRoutes);
+app.use("/api/retailer-marketplace", retailerMarketplaceRoutes);
+app.use("/api/ai", aiRoutes);
+app.use("/api/profile", profileRoutes);
+app.use("/api/mandi-prices", mandiPriceRoutes);
+
+
+
+// Error handling
+app.use((err, req, res, next) => {
+  console.error("Error:", err);
+  res.status(500).json({ message: "Server error. Please try again." });
+});
+
+// Server
+const PORT = 5000;
+app.listen(PORT, () =>
+  console.log(`🚀 Server running on http://localhost:${PORT}`)
+);
