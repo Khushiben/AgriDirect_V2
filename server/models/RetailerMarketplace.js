@@ -15,6 +15,7 @@ const retailerMarketplaceSchema = new mongoose.Schema(
     ref: "RetailerPurchase"
   },
 
+  // Complete supply chain data
   farmerName: String,
   farmerLocation: String,
   farmerSoldPrice: Number,
@@ -36,7 +37,7 @@ const retailerMarketplaceSchema = new mongoose.Schema(
     default: "available"
   },
 
-  // ✅ ADD THIS
+  // Complete blockchain transaction history
   blockchainHistory: [
     {
       action: String,
@@ -45,10 +46,17 @@ const retailerMarketplaceSchema = new mongoose.Schema(
       price: Number,
       timestamp: Date
     }
-  ]
+  ],
+  
+  // Individual transaction IDs for traceability
+  adminApprovalTx: String,
+  distributorPurchaseTx: String,
+  distributorListingTx: String,
+  retailerPurchaseTx: String,
+  retailerListingTx: String
 },
 {
-  timestamps: true   // ✅ This will automatically create createdAt and updatedAt
+  timestamps: true
 }
 );
 

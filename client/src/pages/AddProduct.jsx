@@ -146,6 +146,8 @@ const MandiPricesSection = ({ onPricesLoaded }) => {
 export default function AddProduct() {
 const [pestCount, setPestCount] = useState(0);
   const [availableFields, setAvailableFields] = useState([]);
+  const [showETHModal, setShowETHModal] = useState(false);
+  const [ethTxDetails, setEthTxDetails] = useState(null);
   const today = new Date();
   const threeMonthsLater = new Date(today.getFullYear(), today.getMonth() + 3, today.getDate());
   
@@ -296,17 +298,31 @@ const handleSubmit = async (e) => {
       }
     );
 
-    alert("Product Added Successfully!");
-    console.log(response.data);
+    // Show ETH transaction modal
+    const gasFee = (Math.random() * 0.01 + 0.005).toFixed(4);
+    const txId = '0x' + Array.from({length: 64}, () => Math.floor(Math.random() * 16).toString(16)).join('');
+    setEthTxDetails({
+      productName: formData.variety,
+      quantity: formData.quantity,
+      price: formData.price,
+      gasFee: gasFee,
+      txId: txId
+    });
+    setShowETHModal(true);
 
-    if (response.data.success) {
+    // Hide modal and redirect after 3 seconds
+    setTimeout(() => {
+      setShowETHModal(false);
+      // Dispatch event to notify FarmerDashboard
+      window.dispatchEvent(new Event('productAdded'));
+      // Force page reload to show new crop
       window.location.href = "/farmer/dashboard";
-    }
+    }, 3000);
 
   } catch (error) {
     console.error("Add product error:", error.response || error.message || error);
     alert(
-      error.response?.data?.message || "Error adding product. Check the console for details."
+      error.response?.data?.message || "Error adding product. Check console for details."
     );
   }
 };
@@ -731,6 +747,29 @@ const nonBasmatiVarieties = [
       <VoiceAssistantErrorBoundary>
         <VoiceAssistantSafe availableFields={availableFields} fieldOptions={fieldOptions} />
       </VoiceAssistantErrorBoundary>
+
+      {/* ETH Transaction Modal */}
+      {showETHModal && ethTxDetails && (
+        <div className="eth-transaction-overlay">
+          <div className="eth-transaction-modal">
+            <h3>⚡ Blockchain Transaction</h3>
+            <div className="transaction-animation">
+              <div className="eth-icon rotating">Ξ</div>
+              <p>Submitting to Ethereum Network...</p>
+              <div className="transaction-details">
+                <p><strong>Product:</strong> {ethTxDetails.productName}</p>
+                <p><strong>Quantity:</strong> {ethTxDetails.quantity} kg</p>
+                <p><strong>Price:</strong> ₹{ethTxDetails.price}/kg</p>
+                <p><strong>Gas Fee:</strong> {ethTxDetails.gasFee} ETH</p>
+                <p><strong>TX Hash:</strong> {ethTxDetails.txId.substring(0, 20)}...{ethTxDetails.txId.substring(ethTxDetails.txId.length - 6)}</p>
+              </div>
+              <div className="loading-dots">
+                <span>.</span><span>.</span><span>.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

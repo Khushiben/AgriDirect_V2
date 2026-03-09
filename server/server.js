@@ -51,7 +51,7 @@ app.use("/api/distributortomarketplaces", distributorMarketplaceRoutes);
 app.use("/api/retailer-purchases", retailerPurchaseRoutes);
 app.use("/api/retailer-marketplace", retailerMarketplaceRoutes);
 app.use("/api/ai", aiRoutes);
-app.use("/api/profile", profileRoutes);
+app.use("/api", profileRoutes);
 app.use("/api/mandi-prices", mandiPriceRoutes);
 
 

@@ -47,9 +47,9 @@ const FarmMap = ({ height = '300px', selectedLocation = null }) => {
         zoom={13}
         style={{ height: '100%', width: '100%' }}
         scrollWheelZoom={false}
+        attributionControl={false}
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <Marker position={[farmLocation.lat, farmLocation.lng]}>

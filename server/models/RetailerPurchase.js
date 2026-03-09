@@ -34,13 +34,24 @@ const retailerPurchaseSchema = new mongoose.Schema(
 
     totalPrice: Number,
 
-    // ✅ ADDED THIS
     productImage: String,
 
     status: {
       type: String,
       default: "PURCHASED"
-    }
+    },
+    
+    // Transaction tracking
+    purchaseTxHash: String,
+    
+    // Complete supply chain data for traceability
+    farmerName: String,
+    farmerLocation: String,
+    farmerPrice: Number,
+    adminApprovalTx: String,
+    adminName: String,
+    distributorPurchaseTx: String,
+    distributorListingTx: String
   },
   { timestamps: true }
 );

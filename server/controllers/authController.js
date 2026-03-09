@@ -75,37 +75,32 @@ exports.signup = async (req, res) => {
 
 exports.login = async (req, res) => {
   try {
-    const { role, email, password } = req.body;
+    const { email, password } = req.body;
 
-    // 1️⃣ Check ROLE first
-    if (!role) {
-      return res.status(400).json({ message: "Please select a role" });
-    }
-console.log("Login request received");
-
-    // 2️⃣ Check EMAIL exists
+    // 1️⃣ Check EMAIL exists
     if (!email) {
       return res.status(400).json({ message: "Email is required" });
     }
+console.log("Login request received for:", email);
 
-    // 3️⃣ Check PASSWORD provided
+    // 2️⃣ Check PASSWORD provided
     if (!password) {
       return res.status(400).json({ message: "Password is required" });
     }
 
-    // 4️⃣ Check user exists with that ROLE + EMAIL combination
-    const user = await User.findOne({ email, role });
+    // 3️⃣ Find user by email (any role)
+    const user = await User.findOne({ email });
     if (!user) {
-      return res.status(400).json({ message: "No account found for this role and email" });
-    }console.log("User found:", user.email);
+      return res.status(400).json({ message: "No account found for this email" });
+    }
+console.log("User found:", user.email, "Role:", user.role);
 
-
-    // 5️⃣ Check PASSWORD matches
+    // 4️⃣ Check PASSWORD matches
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid password" });
-    }console.log("Password matched");
-
+    }
+console.log("Password matched");
 
        // 🔐 CREATE TOKEN HERE
     const token = jwt.sign(

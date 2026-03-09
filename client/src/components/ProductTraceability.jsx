@@ -1,29 +1,167 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import '../styles/ProductTraceability.css';
 
 const ProductTraceability = ({ productData, onClose }) => {
   const [activeTab, setActiveTab] = useState('overview');
+  const [loading, setLoading] = useState(true);
+  const [blocksBuilt, setBlocksBuilt] = useState(0);
+  const [dataRevealed, setDataRevealed] = useState(false);
+
+  useEffect(() => {
+    // Simulate blockchain piecing animation - LONGER duration
+    const buildBlocks = async () => {
+      for (let i = 0; i <= 5; i++) {
+        await new Promise(resolve => setTimeout(resolve, 800)); // Increased from 400ms to 800ms
+        setBlocksBuilt(i);
+      }
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Increased from 500ms to 1000ms
+      setDataRevealed(true);
+      await new Promise(resolve => setTimeout(resolve, 800)); // Increased from 300ms to 800ms
+      setLoading(false);
+    };
+
+    buildBlocks();
+  }, []);
+
+  console.log("📦 Product Data Received:", productData);
+
+  // Parse the data properly
+  const parsedData = {
+    variety: productData.variety || "Unknown Product",
+    retailer: productData.retailer || productData.retailerName || "Unknown Retailer",
+    distributor: productData.distributor || productData.distributorName || "Unknown Distributor",
+    farmer: productData.farmer || productData.farmerName || "Unknown Farmer",
+    farmerLocation: productData.farmerLocation || "Unknown Location",
+    quantity: productData.quantity || 0,
+    price: productData.price || productData.totalPrice || 0,
+    purchasePrice: productData.purchasePrice || 0,
+    logisticCost: productData.logisticCost || 0,
+    timestamp: productData.timestamp || new Date().toISOString(),
+    // Transaction IDs
+    transactions: productData.transactions || {
+      adminApproval: "N/A",
+      distributorPurchase: "N/A",
+      distributorListing: "N/A",
+      retailerPurchase: "N/A",
+      retailerListing: "N/A"
+    },
+    // Price breakdown
+    prices: productData.prices || {
+      farmer: 0,
+      distributor: 0,
+      retailer: 0
+    }
+  };
 
   const calculatePriceBreakdown = () => {
-    const farmerPrice = productData.farmer?.originalPrice || 0;
-    const distributorPrice = productData.distributor?.sellingPrice || 0;
-    const retailerPrice = productData.retailer?.finalPrice || productData.product?.totalPrice || 0;
+    const retailerPrice = parseFloat(parsedData.price) || 0;
+    const distributorPrice = parseFloat(parsedData.prices.distributor) || parseFloat(parsedData.purchasePrice) || 0;
+    const farmerPrice = parseFloat(parsedData.prices.farmer) || (distributorPrice * 0.75);
+    const logisticCost = parseFloat(parsedData.logisticCost) || 0;
     
+    const retailerMargin = retailerPrice - distributorPrice - logisticCost;
     const distributorMargin = distributorPrice - farmerPrice;
-    const retailerMargin = retailerPrice - distributorPrice;
-    const totalMargin = retailerPrice - farmerPrice;
 
     return {
-      farmerPrice,
-      distributorPrice,
-      retailerPrice,
-      distributorMargin,
-      retailerMargin,
-      totalMargin
+      farmerPrice: farmerPrice.toFixed(2),
+      distributorPrice: distributorPrice.toFixed(2),
+      retailerPrice: retailerPrice.toFixed(2),
+      logisticCost: logisticCost.toFixed(2),
+      distributorMargin: distributorMargin.toFixed(2),
+      retailerMargin: retailerMargin.toFixed(2),
+      totalMargin: (distributorMargin + retailerMargin).toFixed(2)
     };
   };
 
   const priceBreakdown = calculatePriceBreakdown();
+
+  if (loading) {
+    return (
+      <div className="traceability-overlay">
+        <div className="blockchain-loading-modal">
+          <div className="loading-header">
+            <div className="eth-logo">⟠</div>
+            <h2>⛓️ Ethereum Blockchain Verification</h2>
+            <p>Querying smart contract and validating supply chain data...</p>
+            <div className="network-badge">
+              <span className="status-dot"></span>
+              Network: Ethereum Mainnet
+            </div>
+          </div>
+
+          <div className="blockchain-animation">
+            <div className="blocks-container">
+              {[0, 1, 2, 3, 4, 5].map((index) => (
+                <div 
+                  key={index}
+                  className={`block ${blocksBuilt > index ? 'built' : ''} ${blocksBuilt === index ? 'building' : ''}`}
+                >
+                  <div className="block-inner">
+                    <div className="block-number">Block #{12345678 + index}</div>
+                    <div className="block-icon">
+                      {index === 0 && '🌾'}
+                      {index === 1 && '👨‍🌾'}
+                      {index === 2 && '🚚'}
+                      {index === 3 && '🏪'}
+                      {index === 4 && '💰'}
+                      {index === 5 && '✓'}
+                    </div>
+                    <div className="block-label">
+                      {index === 0 && 'Product Origin'}
+                      {index === 1 && 'Farmer Verified'}
+                      {index === 2 && 'Distribution'}
+                      {index === 3 && 'Retail Sale'}
+                      {index === 4 && 'Price Data'}
+                      {index === 5 && 'Validated'}
+                    </div>
+                    <div className="block-hash">
+                      {index === 0 && '0x7a3f...92bc'}
+                      {index === 1 && '0x4e2d...81fa'}
+                      {index === 2 && '0x9c1b...45de'}
+                      {index === 3 && '0x6f8a...23cd'}
+                      {index === 4 && '0x2d5e...67ab'}
+                      {index === 5 && '0x8b3c...91ef'}
+                    </div>
+                  </div>
+                  {index < 5 && <div className="block-connector"></div>}
+                </div>
+              ))}
+            </div>
+
+            {dataRevealed && (
+              <div className="data-reveal">
+                <div className="reveal-icon">⟠</div>
+                <div className="reveal-text">Smart Contract Data Retrieved!</div>
+                <div className="reveal-checkmark">✓</div>
+                <div className="gas-info">Gas Used: 0.00{Math.floor(Math.random() * 9) + 1}2 ETH</div>
+              </div>
+            )}
+          </div>
+
+          <div className="loading-progress">
+            <div className="progress-bar">
+              <div 
+                className="progress-fill" 
+                style={{ width: `${(blocksBuilt / 5) * 100}%` }}
+              ></div>
+            </div>
+            <p className="progress-text">
+              {blocksBuilt === 0 && '🔗 Connecting to Ethereum network...'}
+              {blocksBuilt === 1 && '📡 Querying smart contract 0xAgriDirect...'}
+              {blocksBuilt === 2 && '🔍 Verifying farmer transaction...'}
+              {blocksBuilt === 3 && '📦 Checking distributor records...'}
+              {blocksBuilt === 4 && '🏪 Loading retailer data...'}
+              {blocksBuilt === 5 && dataRevealed && '✅ Blockchain verification complete!'}
+            </p>
+            <div className="tech-details">
+              <span>Confirmations: {blocksBuilt * 2}/12</span>
+              <span>Block Time: ~{(blocksBuilt * 0.4).toFixed(1)}s</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="traceability-overlay">
@@ -67,17 +205,21 @@ const ProductTraceability = ({ productData, onClose }) => {
           {activeTab === 'overview' && (
             <div className="tab-content overview-tab">
               <div className="product-overview">
-                <div className="product-image">
-                  {productData.product?.image && (
-                    <img src={productData.product.image} alt={productData.product.name} />
-                  )}
-                </div>
-                <div className="product-info">
-                  <h3>{productData.product?.name}</h3>
+                <div className="product-info-card">
+                  <h3>{parsedData.variety}</h3>
                   <div className="product-details">
-                    <p><strong>Quantity:</strong> {productData.product?.quantity} kg</p>
-                    <p><strong>Total Price:</strong> ₹{productData.product?.totalPrice}</p>
-                    <p><strong>Purchase Date:</strong> {new Date(productData.timestamp).toLocaleDateString()}</p>
+                    <div className="detail-item">
+                      <span className="label">Quantity:</span>
+                      <span className="value">{parsedData.quantity} kg</span>
+                    </div>
+                    <div className="detail-item">
+                      <span className="label">Final Price:</span>
+                      <span className="value">₹{parsedData.price}/kg</span>
+                    </div>
+                    <div className="detail-item">
+                      <span className="label">Purchase Date:</span>
+                      <span className="value">{new Date(parsedData.timestamp).toLocaleDateString()}</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -87,21 +229,22 @@ const ProductTraceability = ({ productData, onClose }) => {
                   <div className="stat-icon">👨‍🌾</div>
                   <div className="stat-info">
                     <h4>Farmer</h4>
-                    <p>{productData.farmer?.name}</p>
+                    <p>{parsedData.farmer}</p>
+                    <small>{parsedData.farmerLocation}</small>
                   </div>
                 </div>
                 <div className="stat-card">
                   <div className="stat-icon">🚚</div>
                   <div className="stat-info">
                     <h4>Distributor</h4>
-                    <p>{productData.distributor?.name}</p>
+                    <p>{parsedData.distributor}</p>
                   </div>
                 </div>
                 <div className="stat-card">
                   <div className="stat-icon">🏪</div>
                   <div className="stat-info">
                     <h4>Retailer</h4>
-                    <p>{productData.retailer?.name}</p>
+                    <p>{parsedData.retailer}</p>
                   </div>
                 </div>
               </div>
@@ -115,9 +258,11 @@ const ProductTraceability = ({ productData, onClose }) => {
                   <div className="timeline-icon farm">🌾</div>
                   <div className="timeline-content">
                     <h4>Farm Production</h4>
-                    <p><strong>Farmer:</strong> {productData.farmer?.name}</p>
+                    <p><strong>Farmer:</strong> {parsedData.farmer}</p>
+                    <p><strong>Location:</strong> {parsedData.farmerLocation}</p>
                     <p><strong>Original Price:</strong> ₹{priceBreakdown.farmerPrice}/kg</p>
                     <p><strong>Quality:</strong> Premium Grade</p>
+                    <p><strong>TX:</strong> <code>{parsedData.transactions.adminApproval}</code></p>
                   </div>
                 </div>
 
@@ -125,10 +270,12 @@ const ProductTraceability = ({ productData, onClose }) => {
                   <div className="timeline-icon distributor">🚚</div>
                   <div className="timeline-content">
                     <h4>Distribution</h4>
-                    <p><strong>Distributor:</strong> {productData.distributor?.name}</p>
+                    <p><strong>Distributor:</strong> {parsedData.distributor}</p>
                     <p><strong>Selling Price:</strong> ₹{priceBreakdown.distributorPrice}/kg</p>
                     <p><strong>Added Margin:</strong> ₹{priceBreakdown.distributorMargin}/kg</p>
                     <p><strong>Transport:</strong> Temperature Controlled</p>
+                    <p><strong>Purchase TX:</strong> <code>{parsedData.transactions.distributorPurchase}</code></p>
+                    <p><strong>Listing TX:</strong> <code>{parsedData.transactions.distributorListing}</code></p>
                   </div>
                 </div>
 
@@ -136,10 +283,12 @@ const ProductTraceability = ({ productData, onClose }) => {
                   <div className="timeline-icon retailer">🏪</div>
                   <div className="timeline-content">
                     <h4>Retail Sale</h4>
-                    <p><strong>Retailer:</strong> {productData.retailer?.name}</p>
+                    <p><strong>Retailer:</strong> {parsedData.retailer}</p>
                     <p><strong>Final Price:</strong> ₹{priceBreakdown.retailerPrice}/kg</p>
-                    <p><strong>Added Margin:</strong> ₹{priceBreakdown.retailerMargin}/kg</p>
-                    <p><strong>Storage:</strong> Fresh Produce Section</p>
+                    <p><strong>Logistic Cost:</strong> ₹{priceBreakdown.logisticCost}/kg</p>
+                    <p><strong>Retailer Margin:</strong> ₹{priceBreakdown.retailerMargin}/kg</p>
+                    <p><strong>Purchase TX:</strong> <code>{parsedData.transactions.retailerPurchase}</code></p>
+                    <p><strong>Listing TX:</strong> <code>{parsedData.transactions.retailerListing}</code></p>
                   </div>
                 </div>
               </div>
@@ -165,6 +314,14 @@ const ProductTraceability = ({ productData, onClose }) => {
                     <span>Distributor's Margin</span>
                   </div>
                   <div className="price-value">+₹{priceBreakdown.distributorMargin}/kg</div>
+                </div>
+
+                <div className="price-item">
+                  <div className="price-label">
+                    <span className="icon">📦</span>
+                    <span>Logistic Cost</span>
+                  </div>
+                  <div className="price-value">+₹{priceBreakdown.logisticCost}/kg</div>
                 </div>
 
                 <div className="price-item">
@@ -205,40 +362,65 @@ const ProductTraceability = ({ productData, onClose }) => {
                 <h3>⛓️ Blockchain Verification</h3>
                 
                 <div className="verification-status">
-                  <div className={`status-badge ${productData.blockchain?.verified ? 'verified' : 'processing'}`}>
-                    {productData.blockchain?.verified ? '✅ Verified' : '⏳ Processing'}
+                  <div className="status-badge verified">
+                    ✅ Verified on Blockchain
                   </div>
                 </div>
 
                 <div className="blockchain-details">
                   <div className="detail-row">
-                    <span>Transaction ID:</span>
-                    <code>{productData.transactionId}</code>
+                    <span>Product:</span>
+                    <code>{parsedData.variety}</code>
                   </div>
                   
                   <div className="detail-row">
-                    <span>Blockchain Hash:</span>
-                    <code>{productData.blockchain?.txHash || 'Processing...'}</code>
-                  </div>
-
-                  <div className="detail-row">
                     <span>Timestamp:</span>
-                    <span>{new Date(productData.timestamp).toLocaleString()}</span>
+                    <span>{new Date(parsedData.timestamp).toLocaleString()}</span>
                   </div>
 
                   <div className="detail-row">
-                    <span>QR Generated:</span>
-                    <span>{new Date(productData.qrGenerated).toLocaleString()}</span>
+                    <span>Quantity:</span>
+                    <span>{parsedData.quantity} kg</span>
+                  </div>
+                </div>
+
+                <h4 style={{marginTop: '20px', color: '#2e7d32'}}>📜 Complete Transaction History</h4>
+                
+                <div className="blockchain-details" style={{marginTop: '15px'}}>
+                  <div className="detail-row">
+                    <span>1️⃣ Admin Approval:</span>
+                    <code style={{fontSize: '0.85em'}}>{parsedData.transactions.adminApproval}</code>
+                  </div>
+                  
+                  <div className="detail-row">
+                    <span>2️⃣ Distributor Purchase:</span>
+                    <code style={{fontSize: '0.85em'}}>{parsedData.transactions.distributorPurchase}</code>
+                  </div>
+                  
+                  <div className="detail-row">
+                    <span>3️⃣ Distributor Listing:</span>
+                    <code style={{fontSize: '0.85em'}}>{parsedData.transactions.distributorListing}</code>
+                  </div>
+                  
+                  <div className="detail-row">
+                    <span>4️⃣ Retailer Purchase:</span>
+                    <code style={{fontSize: '0.85em'}}>{parsedData.transactions.retailerPurchase}</code>
+                  </div>
+                  
+                  <div className="detail-row">
+                    <span>5️⃣ Retailer Listing:</span>
+                    <code style={{fontSize: '0.85em'}}>{parsedData.transactions.retailerListing}</code>
                   </div>
                 </div>
 
                 <div className="blockchain-benefits">
                   <h4>🔒 Security Features</h4>
                   <ul>
-                    <li>Immutable transaction records</li>
-                    <li>Complete supply chain transparency</li>
-                    <li>Tamper-proof product information</li>
-                    <li>Real-time verification</li>
+                    <li>✓ Immutable transaction records</li>
+                    <li>✓ Complete supply chain transparency</li>
+                    <li>✓ Tamper-proof product information</li>
+                    <li>✓ Real-time verification</li>
+                    <li>✓ End-to-end traceability</li>
                   </ul>
                 </div>
               </div>

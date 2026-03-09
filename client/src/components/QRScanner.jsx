@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Html5QrcodeScanner } from 'html5-qrcode';
+import { Html5QrcodeScanner, Html5Qrcode } from 'html5-qrcode';
 import '../styles/QRScanner.css';
 
 const QRScanner = ({ onScanSuccess, onClose }) => {
@@ -8,33 +8,61 @@ const QRScanner = ({ onScanSuccess, onClose }) => {
   const scannerRef = useRef(null);
   const scannerInstanceRef = useRef(null);
 
-  const startScanning = () => {
+  const startScanning = async () => {
     setScanning(true);
     setError('');
 
     try {
-      const scanner = new Html5QrcodeScanner(
-        "qr-reader",
-        {
-          fps: 10,
-          qrbox: { width: 250, height: 250 },
-          rememberLastUsedCamera: true,
-          supportedScanTypes: [0] // 0 = Camera scan
-        },
-        false
-      );
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        try {
+          await navigator.mediaDevices.getUserMedia({ video: true });
+          
+          const scanner = new Html5QrcodeScanner(
+            "qr-reader",
+            {
+              fps: 10,
+              qrbox: 250,
+              rememberLastUsedCamera: true,
+              aspectRatio: 1.0,
+              disableFlip: false,
+              videoConstraints: {
+                facingMode: "environment"
+              }
+            },
+            false
+          );
 
-      scanner.render(onScanSuccess, (errorMessage) => {
-        // Handle scan errors silently
-        if (errorMessage.includes('No QR code found')) {
-          return;
+          scanner.render(
+            (decodedText) => {
+              console.log("QR Code detected:", decodedText);
+              try {
+                const data = JSON.parse(decodedText);
+                console.log("Parsed QR data:", data);
+                stopScanning();
+                onScanSuccess(data);
+              } catch (err) {
+                console.error('QR parse error:', err);
+                setError('Invalid QR code format. Please scan a valid product QR code.');
+              }
+            },
+            (errorMessage) => {
+              // Silently handle scanning errors
+            }
+          );
+
+          scannerInstanceRef.current = scanner;
+        } catch (permissionError) {
+          console.error('Camera permission error:', permissionError);
+          setError('Camera access denied. Please allow camera permissions in your browser settings and try again.');
+          setScanning(false);
         }
-      });
-
-      scannerInstanceRef.current = scanner;
+      } else {
+        setError('Camera not supported on this device. Please use the file upload option instead.');
+        setScanning(false);
+      }
     } catch (err) {
-      console.error('Scanner error:', err);
-      setError('Failed to start camera. Please check permissions.');
+      console.error('Scanner initialization error:', err);
+      setError('Failed to initialize scanner. Please try uploading an image instead.');
       setScanning(false);
     }
   };
@@ -55,6 +83,7 @@ const QRScanner = ({ onScanSuccess, onClose }) => {
     const file = event.target.files[0];
     if (!file) return;
 
+    setError('');
     const html5QrCode = new Html5Qrcode("qr-reader");
     
     html5QrCode.scanFile(file, true)
@@ -62,12 +91,18 @@ const QRScanner = ({ onScanSuccess, onClose }) => {
         try {
           const data = JSON.parse(decodedText);
           onScanSuccess(data);
+          onClose();
         } catch (err) {
-          setError('Invalid QR code format');
+          console.error('QR parse error:', err);
+          setError('Invalid QR code format. This doesn\'t appear to be a valid product QR code.');
         }
       })
       .catch(err => {
-        setError('No QR code found in image');
+        console.error('File scan error:', err);
+        setError('No QR code found in the uploaded image. Please try a different image.');
+      })
+      .finally(() => {
+        html5QrCode.clear();
       });
   };
 

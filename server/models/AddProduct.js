@@ -55,10 +55,16 @@ image: {
       ref: "User",
       required: true,
     },
+    // Admin Assignment
+    assignedAdmin: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
     // approval / marketplace information
     status: {
       type: String,
-      enum: ["pending", "verified"],
+      enum: ["pending", "verified", "rejected"],
       default: "pending",
     },
     qualityGrade: String,

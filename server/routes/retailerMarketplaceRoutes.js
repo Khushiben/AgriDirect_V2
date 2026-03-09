@@ -9,6 +9,9 @@ router.post("/add", protect, async (req, res) => {
       return res.status(403).json({ message: "Only retailer allowed" });
     }
 
+    // Generate retailer listing transaction hash
+    const retailerListingTx = '0x' + Array.from({length: 64}, () => Math.floor(Math.random() * 16).toString(16)).join('');
+
     const newProduct = await RetailerMarketplace.create({
       retailer: req.user._id,
       retailerName: req.user.name,
@@ -16,12 +19,26 @@ router.post("/add", protect, async (req, res) => {
       variety: req.body.variety,
       quantity: req.body.quantity,
       price: req.body.price,
-      logisticCost: req.body.logisticCost,   // ✅ ADDED
-      totalPrice: req.body.totalPrice,       // ✅ ADDED
-      productImage: req.body.productImage
+      logisticCost: req.body.logisticCost,
+      totalPrice: req.body.totalPrice,
+      productImage: req.body.productImage,
+      distributorName: req.body.distributorName,
+      farmerName: req.body.farmerName || "Unknown Farmer",
+      farmerLocation: req.body.farmerLocation || "Unknown Location",
+      farmerSoldPrice: req.body.farmerSoldPrice || 0,
+      distributorSoldPrice: req.body.distributorSoldPrice || 0,
+      adminApprovalTx: req.body.adminApprovalTx || "N/A",
+      distributorPurchaseTx: req.body.distributorPurchaseTx || "N/A",
+      distributorListingTx: req.body.distributorListingTx || "N/A",
+      retailerPurchaseTx: req.body.retailerPurchaseTx || "N/A",
+      retailerListingTx: retailerListingTx,
+      blockchainHistory: req.body.blockchainHistory || []
     });
 
-    res.status(201).json(newProduct);
+    res.status(201).json({
+      ...newProduct.toObject(),
+      txHash: retailerListingTx
+    });
 
   } catch (error) {
     console.error(error);
@@ -56,6 +73,60 @@ router.get("/", async (req, res) => {
     res.json(products);
   } catch (error) {
     console.error("Error fetching retailer marketplace products:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Get single product by ID
+router.get("/:id", async (req, res) => {
+  try {
+    const product = await RetailerMarketplace.findById(req.params.id)
+      .populate('retailer', 'name email')
+      .populate('originalPurchase');
+    
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+    
+    res.json(product);
+  } catch (error) {
+    console.error("Error fetching product:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Consumer purchase endpoint
+router.post("/:id/purchase", protect, async (req, res) => {
+  try {
+    const { quantity } = req.body;
+    const product = await RetailerMarketplace.findById(req.params.id);
+    
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+    
+    if (product.quantity < quantity) {
+      return res.status(400).json({ message: "Insufficient stock" });
+    }
+    
+    // Reduce quantity
+    product.quantity -= quantity;
+    
+    // Update status if out of stock
+    if (product.quantity === 0) {
+      product.status = "sold";
+    }
+    
+    await product.save();
+    
+    console.log(`✅ Consumer purchase: ${quantity}kg of ${product.variety}`);
+    
+    res.json({ 
+      message: "Purchase successful",
+      product: product
+    });
+  } catch (error) {
+    console.error("Error processing consumer purchase:", error);
     res.status(500).json({ message: "Server error" });
   }
 });

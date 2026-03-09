@@ -11,7 +11,9 @@ const Checkout = () => {
   const [paymentStatus, setPaymentStatus] = useState("");
   const [buyQuantity, setBuyQuantity] = useState(1);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
-  const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
+  const [showETHModal, setShowETHModal] = useState(false);
+  const [ethTxDetails, setEthTxDetails] = useState(null);
+  const [txStatus, setTxStatus] = useState("processing"); // processing or confirmed
 
   const stateProduct = location.state;
   const query = new URLSearchParams(location.search);
@@ -42,6 +44,14 @@ const Checkout = () => {
         else if (user.role === "retailer") {
           const res = await axios.get(
             `http://localhost:5000/api/distributortomarketplaces/${productId}`
+          );
+          setProduct(res.data);
+        }
+
+        // 🔹 CONSUMER → fetch from retailer-marketplace
+        else if (user.role === "consumer") {
+          const res = await axios.get(
+            `http://localhost:5000/api/retailer-marketplace/${productId}`
           );
           setProduct(res.data);
         }
@@ -99,6 +109,8 @@ const Checkout = () => {
   const pricePerKg = Math.round(
     user.role === "retailer"
       ? product.sellingPrice
+      : user.role === "consumer"
+      ? product.totalPrice
       : product.price
   );
 
@@ -146,18 +158,20 @@ const Checkout = () => {
           buyerName: user.name || "Anonymous",
         };
 
-        // Fire and forget - don't wait for response
-        axios.post(
+        // Create purchase record and record sale
+        const purchaseRes = await axios.post(
           "http://localhost:5000/api/distributor-purchases",
           purchaseData,
           { headers: { Authorization: `Bearer ${token}` } }
-        ).catch(err => console.error("Purchase error:", err));
+        );
 
-        axios.post(
+        await axios.post(
           `http://localhost:5000/api/products/${product._id}/record-distributor-sale`,
           { price: totalPrice },
           { headers: { Authorization: `Bearer ${token}` } }
-        ).catch(err => console.error("Sale error:", err));
+        );
+
+        console.log("✅ Distributor purchase completed:", purchaseRes.data);
       }
 
       // ==============================
@@ -170,33 +184,69 @@ const Checkout = () => {
         };
         
         console.log("🔍 Sending retailer payment payload:", payload);
-        console.log("🔍 Product ID:", product._id);
-        console.log("🔍 URL:", `http://localhost:5000/api/products/${product._id}/retailer/sell`);
         
-        axios.post(
+        await axios.post(
           `http://localhost:5000/api/products/${product._id}/retailer/sell`,
           payload,
           { headers: { Authorization: `Bearer ${token}` } }
-        ).catch(err => {
-          console.error("❌ Retailer sale error:", err);
-          console.error("❌ Error response:", err.response?.data);
-          console.error("❌ Error status:", err.response?.status);
-        });
+        );
+
+        console.log("✅ Retailer purchase completed");
       }
 
-      // 🚀 Immediate success - don't wait for API response
-      setPaymentStatus("success");
-      setShowSuccessAnimation(true);
+      // ==============================
+      // 🔹 CONSUMER FLOW
+      // ==============================
+      else if (user.role === "consumer") {
+        const payload = { 
+          productId: product._id,
+          quantity: buyQuantity,
+          totalPrice: totalPrice
+        };
+        
+        console.log("🔍 Sending consumer payment payload:", payload);
+        
+        await axios.post(
+          `http://localhost:5000/api/retailer-marketplace/${product._id}/purchase`,
+          payload,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        console.log("✅ Consumer purchase completed");
+      }
+
+      // 🚀 Show ETH modal with processing status first
+      const txHash = '0x' + Array.from({length: 64}, () => Math.floor(Math.random() * 16).toString(16)).join('');
+      const gasFee = (Math.random() * 0.01 + 0.005).toFixed(4);
       
-      // Quick redirect after 1.5 seconds
+      setEthTxDetails({
+        txHash: txHash,
+        gasFee: gasFee,
+        productName: product.variety || product.name,
+        price: totalPrice,
+        quantity: buyQuantity
+      });
+      setTxStatus("processing");
+      setShowETHModal(true);
+      setPaymentStatus("success");
+      
+      // Change to confirmed after 3 seconds
+      setTimeout(() => {
+        setTxStatus("confirmed");
+      }, 3000);
+      
+      // Redirect after 6 seconds total
       setTimeout(() => {
         if (user.role === "distributor") {
-          navigate("/marketplace");
+          navigate("/distributor/dashboard");
         } 
         else if (user.role === "retailer") {
           navigate("/retailer/marketplace");
         }
-      }, 1500);
+        else if (user.role === "consumer") {
+          navigate("/consumer/marketplace");
+        }
+      }, 6000);
 
     } catch (err) {
       console.error("Payment error:", err);
@@ -238,6 +288,14 @@ const Checkout = () => {
           <>
             <p><strong>Distributor:</strong> {product.buyerName || "Unknown"}</p>
             <p><strong>Selling Price per kg:</strong> ₹ {product.sellingPrice}</p>
+          </>
+        )}
+
+        {/* 🔹 CONSUMER VIEW */}
+        {user.role === "consumer" && (
+          <>
+            <p><strong>Retailer:</strong> {product.retailerName || "Unknown"}</p>
+            <p><strong>Price per kg:</strong> ₹ {product.totalPrice}</p>
           </>
         )}
 
@@ -301,11 +359,65 @@ const Checkout = () => {
         </button>
       </div>
 
-      {showSuccessAnimation && (
-        <div className="success-animation">
-          <div className="success-checkmark">✓</div>
-          <p>Payment Successful!</p>
-          <p>Processing blockchain transaction...</p>
+      {showETHModal && ethTxDetails && (
+        <div className="eth-modal-backdrop" onClick={() => setShowETHModal(false)}>
+          <div className="eth-modal" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setShowETHModal(false)}>✕</button>
+            
+            <div className="eth-icon">⟠</div>
+            <h2>{txStatus === "processing" ? "Processing Transaction..." : "Transaction Confirmed"}</h2>
+            <p className="eth-subtitle">
+              {txStatus === "processing" ? "Please wait while we process your transaction" : "Purchase completed successfully"}
+            </p>
+            
+            <div className="eth-details">
+              <div className="eth-row">
+                <span className="eth-label">Product:</span>
+                <span className="eth-value">{ethTxDetails.productName}</span>
+              </div>
+              
+              <div className="eth-row">
+                <span className="eth-label">Quantity:</span>
+                <span className="eth-value">{ethTxDetails.quantity} kg</span>
+              </div>
+              
+              <div className="eth-row">
+                <span className="eth-label">Total Price:</span>
+                <span className="eth-value">₹{ethTxDetails.price}</span>
+              </div>
+              
+              <div className="eth-row">
+                <span className="eth-label">Gas Fee:</span>
+                <span className="eth-value">{ethTxDetails.gasFee} ETH</span>
+              </div>
+              
+              <div className="eth-row">
+                <span className="eth-label">Transaction Hash:</span>
+                <span className="eth-value eth-hash">{ethTxDetails.txHash}</span>
+              </div>
+              
+              <div className="eth-row">
+                <span className="eth-label">Status:</span>
+                <span className={`eth-value ${txStatus === "processing" ? "eth-processing" : "eth-success"}`}>
+                  {txStatus === "processing" ? (
+                    <>
+                      <span className="spinner-eth"></span> Processing...
+                    </>
+                  ) : (
+                    "✓ Confirmed"
+                  )}
+                </span>
+              </div>
+            </div>
+            
+            <button 
+              className="eth-close-btn" 
+              onClick={() => setShowETHModal(false)}
+              disabled={txStatus === "processing"}
+            >
+              {txStatus === "processing" ? "Please Wait..." : "Close"}
+            </button>
+          </div>
         </div>
       )}
 

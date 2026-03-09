@@ -18,7 +18,7 @@ const payload = {
   "chat_template_kwargs": {"enable_thinking":true}
 };
 
-console.log("🧪 Testing NVIDIA AI API...");
+console.log("🧪 Testing Openai API...");
 
 axios.post(invokeUrl, payload, {
   headers: headers,

@@ -17,6 +17,7 @@ const userSchema = new mongoose.Schema(
     state: String,
     district: String,
     address: String,
+    farmSize: String,
 
     licenseId: String,
     licenseFile: String,

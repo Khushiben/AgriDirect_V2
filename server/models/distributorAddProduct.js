@@ -35,7 +35,18 @@ const distributorPurchaseSchema = new mongoose.Schema(
     productImage: { type: String },
     status: { type: String, default: "IN_PROGRESS" },
 
-    // ✅ ADD THIS
+    // Transaction tracking
+    listingTxHash: String,
+    purchaseTxHash: String,
+    
+    // Supply chain data for traceability
+    farmerName: String,
+    farmerLocation: String,
+    farmerPrice: Number,
+    adminApprovalTx: String,
+    adminName: String,
+    
+    // Complete blockchain history
     blockchainHistory: [
       {
         action: String,

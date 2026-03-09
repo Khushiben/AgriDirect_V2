@@ -13,53 +13,59 @@ const mongoURI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/agriconnect
 const demoUsers = [
   {
     role: "farmer",
-    email: "farmer@demo.com",
-    password: "demo123",
-    name: "Ramesh Kumar",
+    email: "farmer@agri.com",
+    password: "agri123",
+    name: "Ramesh Kumar Patel",
     phone: "9876543210",
-    state: "Punjab",
-    district: "Ludhiana",
-    address: "Village Green Farm, Ludhiana",
+    state: "Gujarat",
+    district: "Anand",
+    address: "Green Valley Farm, Village Karamsad, Anand, Gujarat - 388325",
+    farmSize: "5",
+    profilePicture: "https://randomuser.me/api/portraits/men/32.jpg"
   },
   {
     role: "consumer",
-    email: "consumer@demo.com",
-    password: "demo123",
-    name: "Priya Sharma",
+    email: "consumer@agri.com",
+    password: "agri123",
+    name: "Priya Mehta Shah",
     phone: "9123456789",
-    state: "Maharashtra",
-    district: "Mumbai",
-    address: "45 Andheri East, Mumbai",
+    state: "Gujarat",
+    district: "Anand",
+    address: "Sardar Patel Nagar, Near AMUL Dairy, Anand, Gujarat - 388001",
+    profilePicture: "https://randomuser.me/api/portraits/women/44.jpg"
   },
   {
     role: "distributor",
-    email: "distributor@demo.com",
-    password: "demo123",
-    name: "Vijay Agro Traders",
+    email: "distributor@agri.com",
+    password: "agri123",
+    name: "Vijay Singh (Agro Traders)",
     phone: "9988776655",
     state: "Gujarat",
-    district: "Ahmedabad",
-    address: "Wholesale Market, Ahmedabad",
+    district: "Anand",
+    address: "Shop No. 12, APMC Market, Anand, Gujarat - 388001",
+    profilePicture: "https://randomuser.me/api/portraits/men/52.jpg"
   },
   {
     role: "retailer",
-    email: "retailer@demo.com",
-    password: "demo123",
-    name: "Fresh Mart Store",
+    email: "retailer@agri.com",
+    password: "agri123",
+    name: "Anjali Desai (Fresh Mart)",
     phone: "9765432101",
-    state: "Karnataka",
-    district: "Bangalore",
-    address: "MG Road, Bangalore",
+    state: "Gujarat",
+    district: "Anand",
+    address: "Station Road, Opposite Railway Station, Anand, Gujarat - 388001",
+    profilePicture: "https://randomuser.me/api/portraits/women/68.jpg"
   },
   {
     role: "admin",
-    email: "admin@demo.com",
-    password: "demo123",
-    name: "AgriDirect Admin",
+    email: "admin@agri.com",
+    password: "agri123",
+    name: "Kiran Patel (Admin)",
     phone: "9000000000",
-    state: "Delhi",
-    district: "New Delhi",
-    address: "Admin Office, New Delhi",
+    state: "Gujarat",
+    district: "Anand",
+    address: "AgriDirect Office, GIDC Estate, Anand, Gujarat - 388001",
+    profilePicture: "https://randomuser.me/api/portraits/men/75.jpg"
   },
 ];
 
@@ -73,7 +79,12 @@ async function seed() {
   }
 
   const User = require("../models/User");
-  const hashedPassword = await bcrypt.hash("demo123", 10);
+  const hashedPassword = await bcrypt.hash("agri123", 10);
+
+  // Delete all existing users first
+  console.log("🗑️  Deleting all existing users...");
+  await User.deleteMany({});
+  console.log("✅ All users deleted");
 
   for (const u of demoUsers) {
     await User.findOneAndUpdate(
@@ -87,15 +98,18 @@ async function seed() {
           state: u.state,
           district: u.district,
           address: u.address,
+          farmSize: u.farmSize || "",
+          profilePicture: u.profilePicture || "",
           role: u.role,
+          isVerified: true,
         },
       },
       { upsert: true, new: true }
     );
-    console.log(`  ✓ ${u.role}: ${u.email}`);
+    console.log(`  ✓ ${u.role}: ${u.email} - ${u.name}`);
   }
 
-  console.log("✅ Demo users seeded. Password for all: demo123");
+  console.log("✅ Demo users seeded. Password for all: agri123");
   await mongoose.disconnect();
   process.exit(0);
 }

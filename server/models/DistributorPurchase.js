@@ -56,6 +56,17 @@ const distributorPurchaseSchema = new mongoose.Schema(
       enum: ["completed", "pending", "failed"],
       default: "completed",
     },
+    
+    // Transaction tracking
+    purchaseTxHash: String,
+    
+    // Farmer details for traceability
+    farmerName: String,
+    farmerLocation: String,
+    
+    // Admin approval details
+    adminApprovalTx: String,
+    adminName: String
   },
   { timestamps: true }
 );

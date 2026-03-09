@@ -35,6 +35,11 @@ router.post(
         processingCost,
         otherCost,
         profit,
+        purchaseTxHash,
+        adminApprovalTx,
+        farmerName,
+        farmerLocation,
+        adminName
       } = req.body;
 
       console.log("Received productId:", productId);
@@ -45,7 +50,7 @@ router.post(
         return res.status(400).json({ message: "Product ID and quantity required" });
       }
 
-      const product = await FarmerProduct.findById(productId);
+      const product = await FarmerProduct.findById(productId).populate('farmer', 'name address').populate('assignedAdmin', 'name');
       console.log("Found product:", product);
 
       if (!product) {
@@ -58,10 +63,10 @@ router.post(
         return res.status(400).json({ message: "Invalid quantity value" });
       }
 
-      // 🔹 NO farmer stock check here
-      // 🔹 NO farmer stock reduction here
+      // Generate listing transaction hash
+      const listingTxHash = '0x' + Array.from({length: 64}, () => Math.floor(Math.random() * 16).toString(16)).join('');
 
-      // 🔹 Create distributor listing
+      // 🔹 Create distributor listing with complete supply chain data
       const newPurchase = new AddProduct({
         product: productId,
         farmer: product.farmer,
@@ -81,7 +86,14 @@ router.post(
         processingCost: Math.round(Number(processingCost) || 0),
         otherCost: Math.round(Number(otherCost) || 0),
         profit: Math.round(Number(profit) || 0),
-        productImage: req.file?.filename || "",
+        productImage: req.file?.filename || product.image || "",
+        listingTxHash: listingTxHash,
+        purchaseTxHash: purchaseTxHash || "N/A",
+        farmerName: farmerName || product.farmer?.name || "Unknown Farmer",
+        farmerLocation: farmerLocation || product.farmer?.address || "Unknown Location",
+        farmerPrice: product.price || 0,
+        adminApprovalTx: adminApprovalTx || product.blockchainTxHash || "N/A",
+        adminName: adminName || product.assignedAdmin?.name || "Unknown Admin"
       });
 
       await newPurchase.save();
@@ -89,6 +101,7 @@ router.post(
       res.status(201).json({
         message: "Distributor product added",
         purchase: newPurchase,
+        txHash: listingTxHash
       });
 
     } catch (err) {

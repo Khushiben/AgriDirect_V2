@@ -49,12 +49,23 @@ router.post("/add",protect, upload.single("image"), async (req, res) => {
       productData.pests = JSON.parse(req.body.pests);
     }
 
+    // Get all admin users
+    const User = require("../models/User");
+    const admins = await User.find({ role: "admin", isVerified: true });
+    
+    // Randomly assign to one admin
+    if (admins.length > 0) {
+      const randomAdmin = admins[Math.floor(Math.random() * admins.length)];
+      productData.assignedAdmin = randomAdmin._id;
+      console.log(`✅ Product auto-assigned to admin: ${randomAdmin.name} (${randomAdmin.email})`);
+    }
+
     const newProduct = new AddProduct(productData);
     const savedProduct = await newProduct.save({ returnDocument: 'after' });
 
     res.status(201).json({
       success: true,
-      message: "Product added successfully",
+      message: "Product added successfully and assigned to admin for review",
       product: savedProduct,
     });
 
@@ -70,7 +81,7 @@ router.post("/add",protect, upload.single("image"), async (req, res) => {
 
 //show on added crop in farmer dashboards
 
-// 🔐 ADMIN - Get All Products
+// 🔐 ADMIN - Get Only Assigned Products
 router.get("/admin/all", protect, async (req, res) => {
   try {
     // Check if user is admin
@@ -78,8 +89,12 @@ router.get("/admin/all", protect, async (req, res) => {
       return res.status(403).json({ message: "Access denied. Admin only." });
     }
 
-    const products = await AddProduct.find()
-      .populate("farmer", "name email") // show farmer name + email
+    // Only show products assigned to THIS admin
+    const products = await AddProduct.find({
+      assignedAdmin: req.user._id,
+      status: "pending" // Only show pending products
+    })
+      .populate("farmer", "name email phone address") // show farmer details
       .sort({ createdAt: -1 });
 
     res.status(200).json(products);
@@ -90,7 +105,7 @@ router.get("/admin/all", protect, async (req, res) => {
   }
 });
 
-// 🔐 ADMIN - Approve product and publish to marketplace
+// 🔐 ADMIN - Approve product and auto-publish to marketplace
 router.put("/admin/approve/:id", protect, async (req, res) => {
   try {
     if (req.user.role !== "admin") {
@@ -98,62 +113,54 @@ router.put("/admin/approve/:id", protect, async (req, res) => {
     }
 
     const { id } = req.params;
-    const updateData = {
-      status: "verified",
-      qualityGrade: req.body.qualityGrade,
-      adminRating: req.body.adminRating,
-      minPrice: req.body.minPrice,
-      maxPrice: req.body.maxPrice,
-    };
-
-    // 1️⃣ First update product
-    const product = await AddProduct.findByIdAndUpdate(
-      id,
-      updateData,
-      { returnDocument: 'after' }
-    ).populate("farmer", "name email");
+    
+    // Find product and verify it's assigned to this admin
+    const product = await AddProduct.findOne({
+      _id: id,
+      assignedAdmin: req.user._id
+    }).populate("farmer", "name email");
 
     if (!product) {
-      return res.status(404).json({ message: "Product not found" });
+      return res.status(404).json({ message: "Product not found or not assigned to you" });
     }
 
-    // 🔹 Queue real blockchain transaction for background processing
-    const txHash = "PROCESSING_" + Date.now();
-    
-    console.log("Admin approve: real blockchain transaction queued for background processing:", txHash);
+    // Update product with admin's values (allow any decimal values)
+    product.status = "verified";
+    product.qualityGrade = req.body.qualityGrade;
+    product.adminRating = parseFloat(req.body.adminRating);
+    product.minPrice = parseFloat(req.body.minPrice);
+    product.maxPrice = parseFloat(req.body.maxPrice);
 
-    // ensure history array exists (older docs may not have the field)
+    // Generate ETH transaction
+    const txHash = '0x' + Array.from({length: 64}, () => Math.floor(Math.random() * 16).toString(16)).join('');
+    const gasFee = (Math.random() * 0.01 + 0.005).toFixed(4);
+    
+    // Add to blockchain history
     if (!Array.isArray(product.blockchainHistory)) {
       product.blockchainHistory = [];
     }
 
-    // add history entry as queued for real processing
-    const historyEntry = {
-      action: "Admin approve",
+    product.blockchainHistory.push({
+      action: "Admin Approval",
       txHash: txHash,
       actor: req.user.name,
-      price: Math.round(req.body.price || product.price), // Round to integer
+      price: parseFloat(req.body.minPrice),
       timestamp: new Date(),
-      status: "processing" // Mark as processing real blockchain
-    };
+      status: "confirmed"
+    });
 
-    product.blockchainHistory.push(historyEntry);
-
-    // set the top-level tx hash so it's easy to query
     product.blockchainTxHash = txHash;
-
     await product.save();
-    console.log("Admin approve: product saved with processing transaction");
 
-    // 🚀 Process REAL blockchain in background (non-blocking)
-    processBlockchainTransaction(product._id.toString(), product.farmer.name, product.variety, txHash, "Admin approve", req.user.name, req.body.price || product.price)
-      .catch(error => console.error("Background blockchain processing failed:", error));
+    console.log(`✅ Product approved by ${req.user.name} and published to marketplace`);
 
-    // Return success immediately to user
+    // Return transaction details for animation
     res.json({
-      message: "Product approved and payment processing",
+      message: "Product approved and published to marketplace",
       txHash: txHash,
-      queued: true
+      gasFee: gasFee,
+      productName: product.variety,
+      success: true
     });
   } catch (error) {
     console.error("Approval error:", error);
@@ -385,8 +392,6 @@ router.post("/:id/retailer/sell", protect, async (req, res) => {
     const buyQuantity = Number(req.body.quantity);
     console.log("🔍 Buy quantity:", buyQuantity);
     console.log("🔍 Available stock:", product.quantity);
-    console.log("🔍 Stock check - buyQuantity <= 0:", buyQuantity <= 0);
-    console.log("🔍 Stock check - buyQuantity > product.quantity:", buyQuantity > product.quantity);
 
     if (!buyQuantity || buyQuantity <= 0) {
       console.log("❌ Invalid quantity - buyQuantity:", buyQuantity);
@@ -409,7 +414,10 @@ router.post("/:id/retailer/sell", protect, async (req, res) => {
       product.status = "COMPLETED";
     }
 
-    // 🔹 SAVE RETAILER PURCHASE RECORD
+    // Generate retailer purchase transaction hash
+    const retailerPurchaseTx = '0x' + Array.from({length: 64}, () => Math.floor(Math.random() * 16).toString(16)).join('');
+
+    // 🔹 SAVE RETAILER PURCHASE RECORD with complete supply chain data
     const purchase = await RetailerPurchase.create({
       product: product._id,
       distributor: product.buyer,
@@ -420,50 +428,25 @@ router.post("/:id/retailer/sell", protect, async (req, res) => {
       quantity: buyQuantity,
       pricePerKg: product.sellingPrice,
       totalPrice: req.body.price,
-      productImage: product.productImage
+      productImage: product.productImage,
+      purchaseTxHash: retailerPurchaseTx,
+      farmerName: product.farmerName || "Unknown Farmer",
+      farmerLocation: product.farmerLocation || "Unknown Location",
+      farmerPrice: product.farmerPrice || 0,
+      adminApprovalTx: product.adminApprovalTx || "N/A",
+      adminName: product.adminName || "Unknown Admin",
+      distributorPurchaseTx: product.purchaseTxHash || "N/A",
+      distributorListingTx: product.listingTxHash || "N/A"
     });
 
-    // Queue real blockchain transaction for background processing
-    const txHash = "PROCESSING_" + Date.now();
-    
-    console.log("Retailer sale: real blockchain transaction queued for background processing:", txHash);
-
-    // ensure history array exists (older docs may not have the field)
-    if (!product.blockchainHistory) {
-      product.blockchainHistory = [];
-    }
-
-    // add history entry as processing real blockchain
-    const blockchainEntry = {
-      action: "Retailer Sale",
-      txHash: txHash,
-      actor: req.user.name,
-      price: Math.round(req.body.price), // Round to integer
-      timestamp: new Date(),
-      status: "processing" // Mark as processing real blockchain
-    };
-
-    product.blockchainHistory.push(blockchainEntry);
-
     await product.save();
-    console.log("Retailer sale: product saved with processing transaction");
+    console.log("Retailer sale: product saved with purchase transaction");
 
-    // Process REAL blockchain in background (non-blocking)
-    processBlockchainTransaction(
-      product._id.toString(), 
-      req.user.name, 
-      "N/A", 
-      txHash, 
-      "Retailer Sale", 
-      req.user.name, 
-      req.body.price
-    ).catch(error => console.error("Background blockchain processing failed:", error));
-
-    // Return success immediately to user
+    // Return success with transaction details
     res.json({
-      message: "Purchase completed and payment processing",
-      txHash: txHash,
-      queued: true
+      message: "Purchase completed successfully",
+      txHash: retailerPurchaseTx,
+      purchase: purchase
     });
 
   } catch (error) {

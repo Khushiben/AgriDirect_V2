@@ -8,20 +8,24 @@ const Marketplace = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [distributors, setDistributors] = useState([]);
   const [distributorModalFor, setDistributorModalFor] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
   const loggedInUserId = storedUser.userId || null;
-  const role = storedUser.role || "consumer"; // added role
+  const role = storedUser.role || "consumer";
 
-  const navigate = useNavigate(); // hook for navigation
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchMarketplace = async () => {
       try {
+        setLoading(true);
         const res = await axios.get("http://localhost:5000/api/products/marketplace");
         setProducts(res.data);
       } catch (error) {
         console.error("Error fetching marketplace products:", error);
+      } finally {
+        setLoading(false);
       }
     };
     fetchMarketplace();
@@ -83,84 +87,102 @@ const closeDetails = () => setSelectedProduct(null);
       </marquee>
 
       <div className="crops-grid">
-        {products.map((crop) => (
-          <div key={crop._id} className="crop-grid-item">
-            <img
-              src={`http://localhost:5000/uploads/licenses/${crop.image}`}
-              alt={crop.variety}
-            />
-            <div className="crop-grid-details">
-              <strong>{crop.variety}</strong>
-              <p>₹ {crop.price}</p>
-              {crop.qualityGrade && <p>Grade: {crop.qualityGrade}</p>}
-              {crop.adminRating != null && <p>Rating: {crop.adminRating}🌟</p>}
-              {(crop.minPrice || crop.maxPrice) && (
-                <p>Price range: ₹{crop.minPrice || '-'} - ₹{crop.maxPrice || '-'}</p>
-              )}
-              <p>Farmer: {crop.farmer?.name}</p>
-              <p>Available Quantity: {crop.quantity} kg</p>
-              {crop.status === "verified" && (
-                <span className="status-badge verified">VERIFIED</span>
-              )}
-
-              <div className="card-buttons">
-                <button className="action-btn" onClick={() => openDetails(crop)}>Get Details</button>
-
-                {/* Buy button for non-farmers */}
-                {/* Buy button for non-farmers and non-admins */}
-{role !== "farmer" && role !== "admin" && (
-  <button
-    className="action-btn buy-btn"
-    onClick={() => {
-      if (!loggedInUserId) {
-        alert("Please login to buy this product.");
-        navigate("/login");
-      } else {
-        handleBuy(crop);
-      }
-    }}
-  >
-    Buy
-  </button>
-)}
-
-{loggedInUserId === (crop.farmer && crop.farmer._id) && crop.quantity > 0 && (
-  <>
-    <button
-      className="action-btn"
-      onClick={() => openDistributorModal(crop)}
-      disabled={crop.distributor && crop.distributorApprovalStatus !== 'rejected'}
-    >
-      {crop.distributor && crop.distributorApprovalStatus !== 'rejected'
-        ? "Distributor Chosen"
-        : "Choose Distributor"}
-    </button>
-
-    {crop.distributor && (
-      <div style={{ marginTop: '4px', fontSize: '0.9em' }}>
-        {crop.distributorApprovalStatus === 'pending' && (
-          <span className="status-badge pending">
-            Awaiting distributor approval
-          </span>
-        )}
-        {crop.distributorApprovalStatus === 'approved' && (
-          <span className="status-badge verified">
-            Distributor approved
-          </span>
-        )}
-        {crop.distributorApprovalStatus === 'rejected' && (
-          <span className="status-badge rejected">
-            Distributor rejected
-          </span>
-        )}
-      </div>
-    )}
-  </>
-)}
+        {loading ? (
+          // Skeleton loading cards
+          Array.from({ length: 6 }).map((_, index) => (
+            <div key={index} className="skeleton-card">
+              <div className="skeleton-image"></div>
+              <div className="skeleton-content">
+                <div className="skeleton-line title"></div>
+                <div className="skeleton-line"></div>
+                <div className="skeleton-line short"></div>
+                <div className="skeleton-line short"></div>
+                <div className="skeleton-buttons">
+                  <div className="skeleton-button"></div>
+                  <div className="skeleton-button"></div>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))
+        ) : (
+          products.map((crop) => (
+            <div key={crop._id} className="crop-grid-item">
+              <img
+                src={`http://localhost:5000/uploads/licenses/${crop.image}`}
+                alt={crop.variety}
+              />
+              <div className="crop-grid-details">
+                <strong>{crop.variety}</strong>
+                <p>₹ {crop.price}</p>
+                {crop.qualityGrade && <p>Grade: {crop.qualityGrade}</p>}
+                {crop.adminRating != null && <p>Rating: {crop.adminRating}🌟</p>}
+                {(crop.minPrice || crop.maxPrice) && (
+                  <p>Price range: ₹{crop.minPrice || '-'} - ₹{crop.maxPrice || '-'}</p>
+                )}
+                <p>Farmer: {crop.farmer?.name}</p>
+                <p>Available Quantity: {crop.quantity} kg</p>
+                {crop.status === "verified" && (
+                  <span className="status-badge verified">VERIFIED</span>
+                )}
+
+                <div className="card-buttons">
+                  <button className="action-btn" onClick={() => openDetails(crop)}>Get Details</button>
+
+                  {/* Buy button for non-farmers and non-admins */}
+                  {role !== "farmer" && role !== "admin" && (
+                    <button
+                      className="action-btn buy-btn"
+                      onClick={() => {
+                        if (!loggedInUserId) {
+                          alert("Please login to buy this product.");
+                          navigate("/login");
+                        } else {
+                          handleBuy(crop);
+                        }
+                      }}
+                    >
+                      Buy
+                    </button>
+                  )}
+
+                  {loggedInUserId === (crop.farmer && crop.farmer._id) && crop.quantity > 0 && (
+                    <>
+                      <button
+                        className="action-btn"
+                        onClick={() => openDistributorModal(crop)}
+                        disabled={crop.distributor && crop.distributorApprovalStatus !== 'rejected'}
+                      >
+                        {crop.distributor && crop.distributorApprovalStatus !== 'rejected'
+                          ? "Distributor Chosen"
+                          : "Choose Distributor"}
+                      </button>
+
+                      {crop.distributor && (
+                        <div style={{ marginTop: '4px', fontSize: '0.9em' }}>
+                          {crop.distributorApprovalStatus === 'pending' && (
+                            <span className="status-badge pending">
+                              Awaiting distributor approval
+                            </span>
+                          )}
+                          {crop.distributorApprovalStatus === 'approved' && (
+                            <span className="status-badge verified">
+                              Distributor approved
+                            </span>
+                          )}
+                          {crop.distributorApprovalStatus === 'rejected' && (
+                            <span className="status-badge rejected">
+                              Distributor rejected
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
       {/* Details modal */}

@@ -1,17 +1,19 @@
 import "../styles/AdminDashboard.css";
-import { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 const AdminDashboard = () => {
   const [products, setProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
-
-  // NEW STATE FOR MARKETPLACE FORM
   const [marketplaceProduct, setMarketplaceProduct] = useState(null);
   const [grade, setGrade] = useState("");
   const [rating, setRating] = useState("");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
+  const [showETHModal, setShowETHModal] = useState(false);
+  const [ethTxDetails, setEthTxDetails] = useState(null);
+  const [selectedFarmer, setSelectedFarmer] = useState(null);
+  const [txStatus, setTxStatus] = useState("processing");
 
   const fetchAllProducts = async () => {
     try {
@@ -42,6 +44,9 @@ const AdminDashboard = () => {
   // OPEN MARKETPLACE FORM
   const openMarketplaceForm = (product) => {
     setMarketplaceProduct(product);
+    // Set min price to locked initial price
+    setMinPrice(product.price || '');
+    setMaxPrice('');
   };
 
   const closeMarketplaceForm = () => {
@@ -80,15 +85,29 @@ const AdminDashboard = () => {
         }
       );
 
-      // Handle response
-      if (res.data.queued) {
-        alert(`Product approved! Transaction queued: ${res.data.txHash}`);
-      } else {
-        alert("Product added to marketplace successfully!");
+      // Show ETH transaction modal
+      if (res.data.success) {
+        setEthTxDetails({
+          txHash: res.data.txHash,
+          gasFee: res.data.gasFee,
+          productName: res.data.productName,
+          price: minPrice
+        });
+        setTxStatus("processing");
+        setShowETHModal(true);
+        
+        closeMarketplaceForm();
+        
+        // Change to confirmed after 3 seconds
+        setTimeout(() => {
+          setTxStatus("confirmed");
+        }, 3000);
+        
+        // Refresh products after 5 seconds
+        setTimeout(() => {
+          fetchAllProducts();
+        }, 5000);
       }
-      
-      closeMarketplaceForm();
-      fetchAllProducts();
       
       // Reset button state
       if (submitButton) {
@@ -111,31 +130,88 @@ const AdminDashboard = () => {
     }
   };
 
+  const closeETHModal = () => {
+    setShowETHModal(false);
+    setEthTxDetails(null);
+    setTxStatus("processing");
+  };
+
+  const handleFarmerClick = (farmerId, farmerName) => {
+    if (selectedFarmer === farmerId) {
+      // Deselect if clicking same farmer
+      setSelectedFarmer(null);
+    } else {
+      setSelectedFarmer(farmerId);
+    }
+  };
+
+  // Filter products by selected farmer
+  const displayedProducts = selectedFarmer 
+    ? products.filter(p => p.farmer?._id === selectedFarmer)
+    : products;
+
+  // Get unique farmers
+  const uniqueFarmers = [...new Map(products.map(p => [p.farmer?._id, p.farmer])).values()];
+
   return (
     <div className="admin-dashboard">
-<section className="added-crops-column">
-  <marquee
-  behavior="scroll"
-  direction="left"
-  scrollamount="5"
-  style={{ 
-    color: "black", 
-    padding: "5px", 
-    fontSize: "18px", 
-    fontWeight: "bold", 
-    backgroundColor: ""  // <-- correct way
-  }}
->
- <h1 className="section-label">ALL FARMER CROPS</h1>
-</marquee>
-        
+      {/* Stats Section */}
+      <div className="admin-stats">
+        <div className="stat-card">
+          <h3>📊 Current Products</h3>
+          <p className="stat-number">{products.length}</p>
+          <p className="stat-label">Pending Approval</p>
+        </div>
+        <div className="stat-card">
+          <h3>👨‍🌾 Farmers</h3>
+          <p className="stat-number">{uniqueFarmers.length}</p>
+          <p className="stat-label">Active Farmers</p>
+        </div>
+      </div>
+
+      <section className="added-crops-column">
+        <marquee
+        behavior="scroll"
+        direction="left"
+        scrollamount="5"
+        style={{ 
+          color: "black", 
+          padding: "5px", 
+          fontSize: "18px", 
+          fontWeight: "bold", 
+          backgroundColor: ""
+        }}
+      >
+       <h1 className="section-label">ALL FARMER CROPS ASSIGNED TO YOU</h1>
+      </marquee>
+
+        {/* Farmer Filter Buttons */}
+        {uniqueFarmers.length > 0 && (
+          <div className="farmer-filter">
+            <button 
+              className={`farmer-btn ${!selectedFarmer ? 'active' : ''}`}
+              onClick={() => setSelectedFarmer(null)}
+            >
+              All Farmers ({products.length})
+            </button>
+            {uniqueFarmers.map(farmer => farmer && (
+              <button 
+                key={farmer._id}
+                className={`farmer-btn ${selectedFarmer === farmer._id ? 'active' : ''}`}
+                onClick={() => handleFarmerClick(farmer._id, farmer.name)}
+              >
+                {farmer.name} ({products.filter(p => p.farmer?._id === farmer._id).length})
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="crops-grid">
-          {products.map((crop) => (
+          {displayedProducts.map((crop) => (
             <div key={crop._id} className="crop-grid-item">
               <div className="img-wrapper">
                 <img
-                  src={`http://localhost:5000/uploads/licenses/${crop.image}`}
+                  src="/rice.jpeg"
                   alt={crop.variety || "Crop"}
                 />
               </div>
@@ -189,7 +265,7 @@ const AdminDashboard = () => {
             <div className="admin-modal-body">
               <div className="admin-modal-image">
                 <img
-                  src={`http://localhost:5000/uploads/licenses/${selectedProduct.image}`}
+                  src="/rice.jpeg"
                   alt={selectedProduct.variety}
                 />
               </div>
@@ -260,6 +336,14 @@ const AdminDashboard = () => {
             <h2>Add to Marketplace</h2>
 
             <form onSubmit={handleMarketplaceSubmit}>
+              <div className="locked-price-info">
+                <h4>🔒 Locked Initial Price</h4>
+                <div className="locked-price">
+                  ₹{marketplaceProduct.price}
+                </div>
+                <p className="price-note">This price was set by the farmer and cannot be changed</p>
+              </div>
+
               <label>Quality Grade</label>
               <select
                 value={grade}
@@ -277,31 +361,104 @@ const AdminDashboard = () => {
                 type="number"
                 min="1"
                 max="5"
+                step="0.1"
                 value={rating}
                 onChange={(e) => setRating(e.target.value)}
                 required
               />
 
-              <label>Minimum Price (₹)</label>
+              <label>Minimum Price (₹) - Locked</label>
               <input
                 type="number"
+                step="0.01"
                 value={minPrice}
-                onChange={(e) => setMinPrice(e.target.value)}
-                required
+                readOnly
+                disabled
+                style={{ backgroundColor: '#f0f0f0', cursor: 'not-allowed' }}
+                placeholder="Set by farmer"
               />
 
-              <label>Maximum Price (₹)</label>
+              <label>Maximum Price (₹) - Admin Sets This</label>
               <input
                 type="number"
+                step="0.01"
                 value={maxPrice}
                 onChange={(e) => setMaxPrice(e.target.value)}
+                min={minPrice}
                 required
+                placeholder="Enter maximum price"
               />
 
-              <button type="submit" className="submit-marketplace-btn">
-                Approve & Publish
+              {maxPrice && parseFloat(maxPrice) <= parseFloat(minPrice) && (
+                <p className="error-message">Maximum price must be greater than minimum price (₹{minPrice})</p>
+              )}
+
+              <button 
+                type="submit" 
+                className="submit-marketplace-btn"
+                disabled={!maxPrice || parseFloat(maxPrice) <= parseFloat(minPrice)}
+              >
+                Approve & Set Price Range
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ETH TRANSACTION MODAL */}
+      {showETHModal && ethTxDetails && (
+        <div className="eth-modal-backdrop" onClick={closeETHModal}>
+          <div className="eth-modal" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={closeETHModal}>✕</button>
+            
+            <div className="eth-icon">⟠</div>
+            <h2>{txStatus === "processing" ? "Processing Transaction..." : "Transaction Confirmed"}</h2>
+            <p className="eth-subtitle">
+              {txStatus === "processing" ? "Please wait while we process your approval" : "Product approved and added to marketplace"}
+            </p>
+            
+            <div className="eth-details">
+              <div className="eth-row">
+                <span className="eth-label">Product:</span>
+                <span className="eth-value">{ethTxDetails.productName}</span>
+              </div>
+              
+              <div className="eth-row">
+                <span className="eth-label">Price:</span>
+                <span className="eth-value">₹{ethTxDetails.price}</span>
+              </div>
+              
+              <div className="eth-row">
+                <span className="eth-label">Gas Fee:</span>
+                <span className="eth-value">{ethTxDetails.gasFee} ETH</span>
+              </div>
+              
+              <div className="eth-row">
+                <span className="eth-label">Transaction Hash:</span>
+                <span className="eth-value eth-hash">{ethTxDetails.txHash}</span>
+              </div>
+              
+              <div className="eth-row">
+                <span className="eth-label">Status:</span>
+                <span className={`eth-value ${txStatus === "processing" ? "eth-processing" : "eth-success"}`}>
+                  {txStatus === "processing" ? (
+                    <>
+                      <span className="spinner-eth"></span> Processing...
+                    </>
+                  ) : (
+                    "✓ Confirmed"
+                  )}
+                </span>
+              </div>
+            </div>
+            
+            <button 
+              className="eth-close-btn" 
+              onClick={closeETHModal}
+              disabled={txStatus === "processing"}
+            >
+              {txStatus === "processing" ? "Please Wait..." : "Close"}
+            </button>
           </div>
         </div>
       )}

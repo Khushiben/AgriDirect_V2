@@ -3,6 +3,7 @@ import "../styles/DistributorDashboard.css";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import AddProducts from "./AddProducts"; // correct relative path
+import DistributorMap from "../components/DistributorMap";
 
 const DistributorDashboard = () => {
   const navigate = useNavigate(); // ✅ MOVE THIS UP
@@ -15,6 +16,7 @@ const DistributorDashboard = () => {
 
   // ✅ NOW navigate is available here
   const navigateToAddProduct = (purchase) => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     navigate("/add-products", { state: { purchase } });
   };
 
@@ -42,6 +44,7 @@ const DistributorDashboard = () => {
         "http://localhost:5000/api/distributor-purchases/my-purchases",
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      console.log("✅ Fetched purchases:", res.data);
       setPurchases(res.data);
     } catch (error) {
       console.error("Error fetching purchases:", error);
@@ -155,6 +158,9 @@ const DistributorDashboard = () => {
         </div>
       </div>
 
+      {/* Distributor Map Section */}
+      <DistributorMap distributorId="distributor123" />
+
       {/* 🔥 THREE COLUMN LAYOUT */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "30px", marginTop: "30px" }}>
 
@@ -171,6 +177,7 @@ const DistributorDashboard = () => {
                       src={`http://localhost:5000/uploads/licenses/${p.product.image}`}
                       alt={p.variety}
                       className="crop-image"
+                      onError={(e) => { e.target.src = '/rice.jpeg'; }}
                     />
                   )}
                   <strong>{p.variety}</strong>
@@ -196,21 +203,23 @@ const DistributorDashboard = () => {
         {/* ================= COLUMN 2 ================= */}
         <div>
           <center><h2>🏪 Marketplace Crops</h2></center>
-          <div className="crops-grid">
+          <div className="crops-grid" style={{ maxHeight: '600px', overflowY: 'auto' }}>
             {marketplaceProducts.length === 0 && <p>No products added.</p>}
             {marketplaceProducts.map((p) => (
               <div key={p._id} className="crop-grid-item">
                 <div className="crop-grid-details">
                   {p.productImage && (
-  <img
-    src={`http://localhost:5000/uploads/licenses/${p.productImage}`}
-    alt={p.variety}
-    className="crop-image"
-  />
-)}
+                    <img
+                      src={`http://localhost:5000/uploads/licenses/${p.productImage}`}
+                      alt={p.variety}
+                      className="crop-image"
+                      onError={(e) => { e.target.src = '/rice.jpeg'; }}
+                    />
+                  )}
                   <strong>{p.variety}</strong>
                   <p>₹ {p.sellingPrice} / kg</p>
                   <p>Quantity: {p.quantity} kg</p>
+                  <p style={{ fontSize: '0.85em', color: '#666' }}>💡 Admin Approved range</p>
 
                   {p.status === "COMPLETED" ? (
                     <span className="status-badge verified">COMPLETED</span>
