@@ -40,7 +40,7 @@ router.get("/", async (req, res) => {
     const products = await DistributorProduct.find({
       status: "available"
     })
-      .populate("distributor", "name email")
+      .populate("buyer", "name email") // ✅ Changed from "distributor" to "buyer"
       .populate("product", "variety image")
       .sort({ createdAt: -1 });
 
@@ -60,6 +60,7 @@ router.get("/:id", async (req, res) => {
     console.log("Requested ID:", req.params.id);
 
     const product = await DistributorProduct.findById(req.params.id)
+      .populate("buyer", "name email") // ✅ Changed from "distributor" to "buyer"
       .populate("farmer", "name email")
       .populate("product", "variety image");
 

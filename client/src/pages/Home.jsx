@@ -9,9 +9,11 @@ const Home = () => {
   const [scannedProduct, setScannedProduct] = useState(null);
 
   const handleQRScanSuccess = (productData) => {
+    console.log("🎉 HOME: QR Scan Success! Product data received:", productData);
     setScannedProduct(productData);
     setShowQRScanner(false);
     setShowTraceability(true);
+    console.log("🎉 HOME: Traceability modal should now be visible");
   };
 
   const closeQRScanner = () => {
@@ -78,6 +80,50 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Team Section */}
+      <section className="team-section">
+        <h2>Meet Our Team</h2>
+        <p className="team-subtitle">Passionate developers building the future of agriculture</p>
+        
+        <div className="team-grid">
+          <div className="team-member">
+            <div className="member-photo">
+              <img src="https://lh3.googleusercontent.com/pw/AP1GczOvuNtuzKh0y0g34IR8pYJur70XZ5_SVHl1IGrNd6UekjaK0yiRSJT9ej4RR3Q7KqIR9VMoIK98KY_O4BOVvSAcloFMI0yGSA9n1GeYbIzjqWTbz3aNhHUAnkuBT98qpEmmkk1nW9GcCighIPjX8pl7sg=w1109-h724-s-no-gm" alt="Shikha" />
+            </div>
+            <h3>Shikha</h3>
+            <p className="member-role">Full Stack Developer & Owner</p>
+            <p className="member-bio">Leading AgriDirect's mission to revolutionize agricultural supply chains through blockchain technology.</p>
+          </div>
+
+          <div className="team-member">
+            <div className="member-photo">
+              <img src="https://lh3.googleusercontent.com/pw/AP1GczNtI2AOUNFoJnGKe7z-eyv1-CFaJKqVpdTcpjm3sf7ZY_1_ssMbepITLE8j-iWymHE6tKHB3I6zIferr0722553K5vkdaAsOQs8WOCK_6f4zvjTZ4h-lrQqUDf2w19PLEO5R3a3SYuqL7k4qm_4zjowOQ=w851-h1013-s-no-gm" alt="Shubham" />
+            </div>
+            <h3>Shubham</h3>
+            <p className="member-role">Full Stack Developer</p>
+            <p className="member-bio">Expert in blockchain integration and backend architecture, ensuring secure and transparent transactions.</p>
+          </div>
+
+          <div className="team-member">
+            <div className="member-photo">
+              <img src="https://lh3.googleusercontent.com/pw/AP1GczOcyYJXRJMpyX7ZHOl677hzuGgGXkcO0R6mqdGWi8PSi0INzTlYl66vWRHouhgFYs3n8f6bYigmQjfWrtbxXk3uDJjq3WwR5pDFL9gtu_5m5Cwx_etknVSf8JzCUv9p_VsUk1ORuQQSMgBF5t3-bll2_Q=w663-h1013-s-no-gm" alt="Khushi" />
+            </div>
+            <h3>Khushi</h3>
+            <p className="member-role">Full Stack Developer</p>
+            <p className="member-bio">Specializing in user experience and frontend development for seamless platform interactions.</p>
+          </div>
+
+          <div className="team-member">
+            <div className="member-photo">
+              <img src="https://lh3.googleusercontent.com/pw/AP1GczMtgODdf4cxA3GoE6Kqeg2AiidrhY5fyDFJ9nNhNmhnLILFB94ji4ZF9L9g2put6klrvHYwv4hT1O74ZaOZAZbngZUrzFcQr6G5uFm7kNmBcCW2j3gFH9fpGjcDS9aTnpDKkHctH34hFjO_JhMpsoH9Ow=w760-h1013-s-no-gm" alt="Krisha" />
+            </div>
+            <h3>Krisha</h3>
+            <p className="member-role">Full Stack Developer</p>
+            <p className="member-bio">Contributing to the development of innovative features for transparent agricultural trade.</p>
+          </div>
+        </div>
+      </section>
+
       <section className="features">
         <div className="feature">
           <img src="/transparancy.png" alt="Transparency" />
@@ -95,6 +141,50 @@ const Home = () => {
           <img src="/user-friendly.png" alt="User Friendly" />
           <h3>User Friendly</h3>
           <p>Simple, reliable experience.</p>
+        </div>
+      </section>
+
+      {/* Team Section */}
+      <section className="team-section">
+        <h2>Meet Our Team</h2>
+        <p className="team-subtitle">Passionate developers building the future of agriculture</p>
+        
+        <div className="team-grid">
+          <div className="team-member">
+            <div className="member-photo">
+              <img src="https://lh3.googleusercontent.com/pw/AP1GczOvuNtuzKh0y0g34IR8pYJur70XZ5_SVHl1IGrNd6UekjaK0yiRSJT9ej4RR3Q7KqIR9VMoIK98KY_O4BOVvSAcloFMI0yGSA9n1GeYbIzjqWTbz3aNhHUAnkuBT98qpEmmkk1nW9GcCighIPjX8pl7sg=w1109-h724-s-no-gm" alt="Shikha" />
+            </div>
+            <h3>Shikha</h3>
+            <p className="member-role">Full Stack Developer & Owner</p>
+            <p className="member-bio">Leading AgriDirect's mission to revolutionize agricultural supply chains through blockchain technology.</p>
+          </div>
+
+          <div className="team-member">
+            <div className="member-photo">
+              <img src="https://lh3.googleusercontent.com/pw/AP1GczNtI2AOUNFoJnGKe7z-eyv1-CFaJKqVpdTcpjm3sf7ZY_1_ssMbepITLE8j-iWymHE6tKHB3I6zIferr0722553K5vkdaAsOQs8WOCK_6f4zvjTZ4h-lrQqUDf2w19PLEO5R3a3SYuqL7k4qm_4zjowOQ=w851-h1013-s-no-gm" alt="Shubham" />
+            </div>
+            <h3>Shubham</h3>
+            <p className="member-role">Full Stack Developer</p>
+            <p className="member-bio">Expert in blockchain integration and backend architecture, ensuring secure and transparent transactions.</p>
+          </div>
+
+          <div className="team-member">
+            <div className="member-photo">
+              <img src="https://lh3.googleusercontent.com/pw/AP1GczOcyYJXRJMpyX7ZHOl677hzuGgGXkcO0R6mqdGWi8PSi0INzTlYl66vWRHouhgFYs3n8f6bYigmQjfWrtbxXk3uDJjq3WwR5pDFL9gtu_5m5Cwx_etknVSf8JzCUv9p_VsUk1ORuQQSMgBF5t3-bll2_Q=w663-h1013-s-no-gm" alt="Khushi" />
+            </div>
+            <h3>Khushi</h3>
+            <p className="member-role">Full Stack Developer</p>
+            <p className="member-bio">Specializing in user experience and frontend development for seamless platform interactions.</p>
+          </div>
+
+          <div className="team-member">
+            <div className="member-photo">
+              <img src="https://lh3.googleusercontent.com/pw/AP1GczMtgODdf4cxA3GoE6Kqeg2AiidrhY5fyDFJ9nNhNmhnLILFB94ji4ZF9L9g2put6klrvHYwv4hT1O74ZaOZAZbngZUrzFcQr6G5uFm7kNmBcCW2j3gFH9fpGjcDS9aTnpDKkHctH34hFjO_JhMpsoH9Ow=w760-h1013-s-no-gm" alt="Krisha" />
+            </div>
+            <h3>Krisha</h3>
+            <p className="member-role">Full Stack Developer</p>
+            <p className="member-bio">Contributing to the development of innovative features for transparent agricultural trade.</p>
+          </div>
         </div>
       </section>
 

@@ -211,8 +211,9 @@ const AdminDashboard = () => {
             <div key={crop._id} className="crop-grid-item">
               <div className="img-wrapper">
                 <img
-                  src="/rice.jpeg"
-                  alt={crop.variety || "Crop"}
+                  src="https://lh3.googleusercontent.com/pw/AP1GczOYZe0-gl9tYo4EJ8ilUZClxIOQ4IvLq8JfM6bkt_t3zugpd64crKv3oJ6TPd_RNqxoTC1iIziNkyls9Lbe0Qr7JR04tqlzQ0mpLcz-6JtBe5l43Qd1n33dACBC5DEn-vh6uF3RjpUAfZoUWQlHvqwbDw=w327-h154-s-no-gm"
+                  alt={crop.variety || "Rice"}
+                  style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: '8px' }}
                 />
               </div>
 
@@ -265,8 +266,9 @@ const AdminDashboard = () => {
             <div className="admin-modal-body">
               <div className="admin-modal-image">
                 <img
-                  src="/rice.jpeg"
-                  alt={selectedProduct.variety}
+                  src="https://lh3.googleusercontent.com/pw/AP1GczOYZe0-gl9tYo4EJ8ilUZClxIOQ4IvLq8JfM6bkt_t3zugpd64crKv3oJ6TPd_RNqxoTC1iIziNkyls9Lbe0Qr7JR04tqlzQ0mpLcz-6JtBe5l43Qd1n33dACBC5DEn-vh6uF3RjpUAfZoUWQlHvqwbDw=w327-h154-s-no-gm"
+                  alt={selectedProduct.variety || "Rice"}
+                  style={{ width: '100%', maxWidth: '400px', height: 'auto', borderRadius: '8px' }}
                 />
               </div>
               <div className="admin-modal-info">

@@ -15,11 +15,11 @@ const demoUsers = [
     role: "farmer",
     email: "farmer@agri.com",
     password: "agri123",
-    name: "Ramesh Kumar Patel",
+    name: "Shubham",
     phone: "9876543210",
     state: "Gujarat",
     district: "Anand",
-    address: "Green Valley Farm, Village Karamsad, Anand, Gujarat - 388325",
+    address: "MBIT Anand IND",
     farmSize: "5",
     profilePicture: "https://randomuser.me/api/portraits/men/32.jpg"
   },
@@ -58,14 +58,25 @@ const demoUsers = [
   },
   {
     role: "admin",
-    email: "admin@agri.com",
+    email: "admin1@agri.com",
     password: "agri123",
-    name: "Kiran Patel (Admin)",
-    phone: "9000000000",
+    name: "Kiran Patel",
+    phone: "9000000001",
     state: "Gujarat",
     district: "Anand",
     address: "AgriDirect Office, GIDC Estate, Anand, Gujarat - 388001",
     profilePicture: "https://randomuser.me/api/portraits/men/75.jpg"
+  },
+  {
+    role: "admin",
+    email: "admin2@agri.com",
+    password: "agri123",
+    name: "Neha Sharma",
+    phone: "9000000002",
+    state: "Gujarat",
+    district: "Anand",
+    address: "AgriDirect Office, GIDC Estate, Anand, Gujarat - 388001",
+    profilePicture: "https://randomuser.me/api/portraits/women/65.jpg"
   },
 ];
 

@@ -43,13 +43,12 @@ const RetailerDashboard = () => {
             <div key={p._id} className="crop-grid-item">
               <div className="crop-grid-details">
 
-                {p.productImage && (
-                  <img
-                    src={`http://localhost:5000/uploads/licenses/${p.productImage}`}
-                    alt={p.variety}
-                    className="crop-image"
-                  />
-                )}
+                <img
+                  src="https://lh3.googleusercontent.com/pw/AP1GczOYZe0-gl9tYo4EJ8ilUZClxIOQ4IvLq8JfM6bkt_t3zugpd64crKv3oJ6TPd_RNqxoTC1iIziNkyls9Lbe0Qr7JR04tqlzQ0mpLcz-6JtBe5l43Qd1n33dACBC5DEn-vh6uF3RjpUAfZoUWQlHvqwbDw=w327-h154-s-no-gm"
+                  alt={p.variety || "Rice"}
+                  className="crop-image"
+                  style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: '8px', marginBottom: '10px' }}
+                />
 
                 <strong>{p.variety}</strong>
 

@@ -76,29 +76,28 @@ const Header = () => {
             <Link to="/">HOME</Link>
           </li>
 
-<li>
-  <Link
-    to={
-      user?.role?.toLowerCase() === "retailer"
-        ? "/retailer/marketplace"
-        : user?.role?.toLowerCase() === "consumer"
-        ? "/consumer-marketplace"
-        : "/marketplace"
-    }
-  >
-    MARKETPLACE
-  </Link>
-</li>
+          {/* Only show marketplace if user is logged in and not a farmer */}
+          {user && user.role !== "farmer" && (
+            <li>
+              <Link
+                to={
+                  user.role === "retailer"
+                    ? "/retailer/marketplace"
+                    : user.role === "consumer"
+                    ? "/consumer-marketplace"
+                    : "/marketplace"
+                }
+              >
+                MARKETPLACE
+              </Link>
+            </li>
+          )}
 
           {/* dashboard link always visible; if not logged in route to login */}
           <li>
             <Link to={user ? `/${user.role}/dashboard` : "/login"}>
               DASHBOARD
             </Link>
-          </li>
-
-          <li>
-            <Link to="/about">ABOUT US</Link>
           </li>
 
           {!user ? (

@@ -46,8 +46,11 @@ const Login = () => {
       const userData = {
         userId: data.userId,
         role: data.role,
+        name: data.name || "User", // ✅ Add name
+        email: formData.email // ✅ Add email
       };
       localStorage.setItem("user", JSON.stringify(userData));
+      console.log("✅ Login successful:", userData);
       window.dispatchEvent(new Event("userLogin"));
 
       // Check if user has profile picture; if not, send to setup

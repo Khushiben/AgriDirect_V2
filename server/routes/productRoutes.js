@@ -29,10 +29,9 @@ async function processBlockchainTransaction(productId, actorName, productVariety
 }
 
 // CREATE PRODUCT
-router.post("/add",protect, upload.single("image"), async (req, res) => {
+router.post("/add", protect, async (req, res) => {
   try {
     console.log("BODY:", req.body);
-    console.log("FILE:", req.file);
 
     if (!req.user || !req.user._id) {
       return res.status(401).json({ success: false, message: "User not authenticated" });
@@ -40,12 +39,11 @@ router.post("/add",protect, upload.single("image"), async (req, res) => {
 
     const productData = {
       ...req.body,
-      image: req.file ? req.file.filename : null,
       farmer: req.user._id,
     };
 
-    // Convert pests string back to array
-    if (req.body.pests) {
+    // Convert pests string back to array if it's a string
+    if (typeof req.body.pests === 'string') {
       productData.pests = JSON.parse(req.body.pests);
     }
 
@@ -62,6 +60,8 @@ router.post("/add",protect, upload.single("image"), async (req, res) => {
 
     const newProduct = new AddProduct(productData);
     const savedProduct = await newProduct.save({ returnDocument: 'after' });
+
+    console.log("✅ Product saved successfully:", savedProduct._id);
 
     res.status(201).json({
       success: true,

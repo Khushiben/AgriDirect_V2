@@ -87,6 +87,7 @@ router.post(
         otherCost: Math.round(Number(otherCost) || 0),
         profit: Math.round(Number(profit) || 0),
         productImage: req.file?.filename || product.image || "",
+        status: "available", // ✅ SET STATUS TO AVAILABLE FOR RETAILERS
         listingTxHash: listingTxHash,
         purchaseTxHash: purchaseTxHash || "N/A",
         farmerName: farmerName || product.farmer?.name || "Unknown Farmer",

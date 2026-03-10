@@ -7,17 +7,23 @@ const ProductTraceability = ({ productData, onClose }) => {
   const [blocksBuilt, setBlocksBuilt] = useState(0);
   const [dataRevealed, setDataRevealed] = useState(false);
 
+  console.log("🔍 TRACEABILITY: Component mounted with productData:", productData);
+
   useEffect(() => {
-    // Simulate blockchain piecing animation - LONGER duration
+    console.log("🔍 TRACEABILITY: Starting blockchain animation...");
+    // Simulate blockchain piecing animation - smooth and detailed
     const buildBlocks = async () => {
-      for (let i = 0; i <= 5; i++) {
-        await new Promise(resolve => setTimeout(resolve, 800)); // Increased from 400ms to 800ms
+      for (let i = 0; i <= 6; i++) {
+        await new Promise(resolve => setTimeout(resolve, 600));
         setBlocksBuilt(i);
+        console.log(`🔍 TRACEABILITY: Block ${i} built`);
       }
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Increased from 500ms to 1000ms
+      await new Promise(resolve => setTimeout(resolve, 800));
       setDataRevealed(true);
-      await new Promise(resolve => setTimeout(resolve, 800)); // Increased from 300ms to 800ms
+      console.log("🔍 TRACEABILITY: Data revealed");
+      await new Promise(resolve => setTimeout(resolve, 600));
       setLoading(false);
+      console.log("🔍 TRACEABILITY: Loading complete, showing data");
     };
 
     buildBlocks();
@@ -25,47 +31,65 @@ const ProductTraceability = ({ productData, onClose }) => {
 
   console.log("📦 Product Data Received:", productData);
 
-  // Parse the data properly
+  // Parse the data properly - handle both old and new field names
   const parsedData = {
-    variety: productData.variety || "Unknown Product",
-    retailer: productData.retailer || productData.retailerName || "Unknown Retailer",
-    distributor: productData.distributor || productData.distributorName || "Unknown Distributor",
-    farmer: productData.farmer || productData.farmerName || "Unknown Farmer",
-    farmerLocation: productData.farmerLocation || "Unknown Location",
-    quantity: productData.quantity || 0,
-    price: productData.price || productData.totalPrice || 0,
+    variety: productData.v || productData.variety || "Unknown Product",
+    retailer: productData.r || productData.retailerName || productData.retailer || "Unknown Retailer",
+    distributor: productData.d || productData.distributorName || productData.distributor || "Unknown Distributor",
+    farmer: productData.f || productData.farmerName || productData.farmer || "Unknown Farmer",
+    farmerLocation: productData.l || productData.farmerLocation || "Unknown Location",
+    quantity: productData.q || productData.quantity || 0,
+    price: productData.p || productData.price || productData.totalPrice || 0,
     purchasePrice: productData.purchasePrice || 0,
-    logisticCost: productData.logisticCost || 0,
-    timestamp: productData.timestamp || new Date().toISOString(),
-    // Transaction IDs
-    transactions: productData.transactions || {
+    logisticCost: productData.lc || productData.logisticCost || 0,
+    timestamp: productData.t || productData.timestamp || new Date().toISOString(),
+    // Transaction IDs - handle both full and shortened
+    transactions: productData.tx ? {
+      adminApproval: productData.tx.a || "N/A",
+      distributorPurchase: productData.tx.d1 || "N/A",
+      distributorListing: productData.tx.d2 || "N/A",
+      retailerPurchase: productData.tx.r1 || "N/A",
+      retailerListing: productData.tx.r2 || "N/A"
+    } : (productData.transactions || {
       adminApproval: "N/A",
       distributorPurchase: "N/A",
       distributorListing: "N/A",
       retailerPurchase: "N/A",
       retailerListing: "N/A"
-    },
-    // Price breakdown
-    prices: productData.prices || {
-      farmer: 0,
-      distributor: 0,
-      retailer: 0
+    }),
+    // Price breakdown - handle both formats
+    prices: {
+      farmer: parseFloat(productData.fp || productData.prices?.farmer || 0),
+      distributor: parseFloat(productData.dp || productData.prices?.distributor || 0),
+      retailer: parseFloat(productData.p || productData.price || productData.prices?.retailer || 0)
     }
   };
 
+  console.log("💰 Parsed pricing data:", parsedData.prices);
+
   const calculatePriceBreakdown = () => {
-    const retailerPrice = parseFloat(parsedData.price) || 0;
-    const distributorPrice = parseFloat(parsedData.prices.distributor) || parseFloat(parsedData.purchasePrice) || 0;
-    const farmerPrice = parseFloat(parsedData.prices.farmer) || (distributorPrice * 0.75);
-    const logisticCost = parseFloat(parsedData.logisticCost) || 0;
+    const farmerPrice = parsedData.prices.farmer;
+    const distributorPrice = parsedData.prices.distributor;
+    const retailerFinalPrice = parsedData.prices.retailer;
+    const logisticCost = parseFloat(parsedData.logisticCost);
     
-    const retailerMargin = retailerPrice - distributorPrice - logisticCost;
+    // Calculate margins
     const distributorMargin = distributorPrice - farmerPrice;
+    const retailerMargin = retailerFinalPrice - distributorPrice - logisticCost;
+
+    console.log("💰 Price breakdown calculated:", {
+      farmerPrice,
+      distributorPrice,
+      retailerFinalPrice,
+      logisticCost,
+      distributorMargin,
+      retailerMargin
+    });
 
     return {
       farmerPrice: farmerPrice.toFixed(2),
       distributorPrice: distributorPrice.toFixed(2),
-      retailerPrice: retailerPrice.toFixed(2),
+      retailerPrice: retailerFinalPrice.toFixed(2),
       logisticCost: logisticCost.toFixed(2),
       distributorMargin: distributorMargin.toFixed(2),
       retailerMargin: retailerMargin.toFixed(2),
@@ -80,60 +104,90 @@ const ProductTraceability = ({ productData, onClose }) => {
       <div className="traceability-overlay">
         <div className="blockchain-loading-modal">
           <div className="loading-header">
-            <div className="eth-logo">⟠</div>
+            <div className="eth-logo-container">
+              <div className="eth-logo">⟠</div>
+              <div className="eth-rings">
+                <div className="ring ring-1"></div>
+                <div className="ring ring-2"></div>
+                <div className="ring ring-3"></div>
+              </div>
+            </div>
             <h2>⛓️ Ethereum Blockchain Verification</h2>
             <p>Querying smart contract and validating supply chain data...</p>
-            <div className="network-badge">
-              <span className="status-dot"></span>
-              Network: Ethereum Mainnet
+            <div className="network-info">
+              <div className="network-badge">
+                <span className="status-dot"></span>
+                Network: Ethereum Mainnet
+              </div>
+              <div className="gas-badge">
+                <span className="gas-icon">⛽</span>
+                Gas: {(Math.random() * 50 + 20).toFixed(0)} Gwei
+              </div>
             </div>
           </div>
 
           <div className="blockchain-animation">
             <div className="blocks-container">
-              {[0, 1, 2, 3, 4, 5].map((index) => (
-                <div 
-                  key={index}
-                  className={`block ${blocksBuilt > index ? 'built' : ''} ${blocksBuilt === index ? 'building' : ''}`}
-                >
-                  <div className="block-inner">
-                    <div className="block-number">Block #{12345678 + index}</div>
-                    <div className="block-icon">
-                      {index === 0 && '🌾'}
-                      {index === 1 && '👨‍🌾'}
-                      {index === 2 && '🚚'}
-                      {index === 3 && '🏪'}
-                      {index === 4 && '💰'}
-                      {index === 5 && '✓'}
-                    </div>
-                    <div className="block-label">
-                      {index === 0 && 'Product Origin'}
-                      {index === 1 && 'Farmer Verified'}
-                      {index === 2 && 'Distribution'}
-                      {index === 3 && 'Retail Sale'}
-                      {index === 4 && 'Price Data'}
-                      {index === 5 && 'Validated'}
-                    </div>
-                    <div className="block-hash">
-                      {index === 0 && '0x7a3f...92bc'}
-                      {index === 1 && '0x4e2d...81fa'}
-                      {index === 2 && '0x9c1b...45de'}
-                      {index === 3 && '0x6f8a...23cd'}
-                      {index === 4 && '0x2d5e...67ab'}
-                      {index === 5 && '0x8b3c...91ef'}
+              {[0, 1, 2, 3, 4, 5, 6].map((index) => (
+                <React.Fragment key={index}>
+                  <div 
+                    className={`block ${blocksBuilt > index ? 'built' : ''} ${blocksBuilt === index ? 'building' : ''}`}
+                  >
+                    <div className="block-inner">
+                      <div className="block-number">#{12345678 + index}</div>
+                      <div className="block-icon">
+                        {index === 0 && '🌾'}
+                        {index === 1 && '👨‍🌾'}
+                        {index === 2 && '✅'}
+                        {index === 3 && '🚚'}
+                        {index === 4 && '🏪'}
+                        {index === 5 && '💰'}
+                        {index === 6 && '🔒'}
+                      </div>
+                      <div className="block-label">
+                        {index === 0 && 'Origin'}
+                        {index === 1 && 'Farmer'}
+                        {index === 2 && 'Verified'}
+                        {index === 3 && 'Transport'}
+                        {index === 4 && 'Retail'}
+                        {index === 5 && 'Payment'}
+                        {index === 6 && 'Sealed'}
+                      </div>
+                      <div className="block-hash">
+                        0x{Math.random().toString(16).substr(2, 4)}...{Math.random().toString(16).substr(2, 4)}
+                      </div>
+                      <div className="block-timestamp">
+                        {new Date(Date.now() - (6 - index) * 60000).toLocaleTimeString()}
+                      </div>
                     </div>
                   </div>
-                  {index < 5 && <div className="block-connector"></div>}
-                </div>
+                  {index < 6 && <div className="block-connector"></div>}
+                </React.Fragment>
               ))}
             </div>
 
             {dataRevealed && (
               <div className="data-reveal">
-                <div className="reveal-icon">⟠</div>
+                <div className="reveal-icon-container">
+                  <div className="reveal-icon">⟠</div>
+                  <div className="success-ring"></div>
+                </div>
                 <div className="reveal-text">Smart Contract Data Retrieved!</div>
                 <div className="reveal-checkmark">✓</div>
-                <div className="gas-info">Gas Used: 0.00{Math.floor(Math.random() * 9) + 1}2 ETH</div>
+                <div className="reveal-details">
+                  <div className="detail-item">
+                    <span>Contract:</span>
+                    <span>0xAgriDirect...{Math.random().toString(16).substr(2, 4)}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span>Gas Used:</span>
+                    <span>0.00{Math.floor(Math.random() * 9) + 1}2 ETH</span>
+                  </div>
+                  <div className="detail-item">
+                    <span>Confirmations:</span>
+                    <span>{blocksBuilt * 2}/12</span>
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -142,7 +196,7 @@ const ProductTraceability = ({ productData, onClose }) => {
             <div className="progress-bar">
               <div 
                 className="progress-fill" 
-                style={{ width: `${(blocksBuilt / 5) * 100}%` }}
+                style={{ width: `${(blocksBuilt / 6) * 100}%` }}
               ></div>
             </div>
             <p className="progress-text">
@@ -151,11 +205,13 @@ const ProductTraceability = ({ productData, onClose }) => {
               {blocksBuilt === 2 && '🔍 Verifying farmer transaction...'}
               {blocksBuilt === 3 && '📦 Checking distributor records...'}
               {blocksBuilt === 4 && '🏪 Loading retailer data...'}
-              {blocksBuilt === 5 && dataRevealed && '✅ Blockchain verification complete!'}
+              {blocksBuilt === 5 && '💰 Validating payment history...'}
+              {blocksBuilt === 6 && dataRevealed && '✅ Blockchain verification complete!'}
             </p>
             <div className="tech-details">
-              <span>Confirmations: {blocksBuilt * 2}/12</span>
-              <span>Block Time: ~{(blocksBuilt * 0.4).toFixed(1)}s</span>
+              <span>Block Height: {12345678 + blocksBuilt}</span>
+              <span>Block Time: ~{(blocksBuilt * 0.6).toFixed(1)}s</span>
+              <span>Network: Mainnet</span>
             </div>
           </div>
         </div>
@@ -253,6 +309,57 @@ const ProductTraceability = ({ productData, onClose }) => {
 
           {activeTab === 'supply-chain' && (
             <div className="tab-content supply-chain-tab">
+              {/* Supply Chain Map */}
+              <div className="supply-chain-map" style={{ marginBottom: '30px', background: '#f5f5f5', padding: '20px', borderRadius: '12px' }}>
+                <h3 style={{ marginBottom: '15px', color: '#2e7d32' }}>🗺️ Supply Chain Journey Map</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px' }}>
+                  {/* Farmer Location */}
+                  <div style={{ background: 'white', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                    <h4 style={{ color: '#2e7d32', marginBottom: '10px' }}>👨‍🌾 Farmer Location</h4>
+                    <p style={{ fontSize: '0.9em', marginBottom: '10px' }}>{parsedData.farmerLocation}</p>
+                    <iframe
+                      title="farmer-location"
+                      width="100%"
+                      height="200"
+                      frameBorder="0"
+                      style={{ border: 0, borderRadius: '8px' }}
+                      src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${encodeURIComponent(parsedData.farmerLocation)}`}
+                      allowFullScreen
+                    ></iframe>
+                  </div>
+                  
+                  {/* Distributor Location (Random nearby) */}
+                  <div style={{ background: 'white', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                    <h4 style={{ color: '#ff9800', marginBottom: '10px' }}>🚚 Distributor Hub</h4>
+                    <p style={{ fontSize: '0.9em', marginBottom: '10px' }}>Anand Distribution Center</p>
+                    <iframe
+                      title="distributor-location"
+                      width="100%"
+                      height="200"
+                      frameBorder="0"
+                      style={{ border: 0, borderRadius: '8px' }}
+                      src="https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=Anand+Railway+Station+Gujarat"
+                      allowFullScreen
+                    ></iframe>
+                  </div>
+                  
+                  {/* Retailer Location (Random nearby) */}
+                  <div style={{ background: 'white', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                    <h4 style={{ color: '#1976d2', marginBottom: '10px' }}>🏪 Retailer Store</h4>
+                    <p style={{ fontSize: '0.9em', marginBottom: '10px' }}>Anand Retail Market</p>
+                    <iframe
+                      title="retailer-location"
+                      width="100%"
+                      height="200"
+                      frameBorder="0"
+                      style={{ border: 0, borderRadius: '8px' }}
+                      src="https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=Anand+Market+Yard+Gujarat"
+                      allowFullScreen
+                    ></iframe>
+                  </div>
+                </div>
+              </div>
+
               <div className="supply-chain-timeline">
                 <div className="timeline-item">
                   <div className="timeline-icon farm">🌾</div>

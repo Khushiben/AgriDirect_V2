@@ -20,33 +20,47 @@ const QRScanner = ({ onScanSuccess, onClose }) => {
           const scanner = new Html5QrcodeScanner(
             "qr-reader",
             {
-              fps: 10,
-              qrbox: 250,
+              fps: 30, // Increased from 10 to 30 for faster detection
+              qrbox: { width: 300, height: 300 }, // Larger scan box
               rememberLastUsedCamera: true,
               aspectRatio: 1.0,
               disableFlip: false,
               videoConstraints: {
-                facingMode: "environment"
-              }
+                facingMode: "environment",
+                advanced: [{ zoom: 1.0 }]
+              },
+              // Enable full frame scanning - no box restriction
+              experimentalFeatures: {
+                useBarCodeDetectorIfSupported: true
+              },
+              showTorchButtonIfSupported: true,
+              formatsToSupport: [0] // QR_CODE only for faster detection
             },
             false
           );
 
           scanner.render(
             (decodedText) => {
-              console.log("QR Code detected:", decodedText);
+              console.log("✅ QR Code detected:", decodedText);
               try {
                 const data = JSON.parse(decodedText);
-                console.log("Parsed QR data:", data);
+                console.log("✅ Parsed QR data successfully:", data);
+                console.log("📦 Product variety:", data.variety || data.varietyName);
+                console.log("👨‍🌾 Farmer:", data.farmerName || data.farmer);
+                console.log("🚚 Distributor:", data.distributorName || data.distributor);
+                console.log("🏪 Retailer:", data.retailerName || data.retailer);
+                console.log("🎯 Calling onScanSuccess callback...");
                 stopScanning();
                 onScanSuccess(data);
+                console.log("✅ onScanSuccess callback completed");
               } catch (err) {
-                console.error('QR parse error:', err);
+                console.error('❌ QR parse error:', err);
+                console.error('❌ Raw QR text:', decodedText);
                 setError('Invalid QR code format. Please scan a valid product QR code.');
               }
             },
             (errorMessage) => {
-              // Silently handle scanning errors
+              // Silently handle scanning errors (too noisy)
             }
           );
 
@@ -81,28 +95,73 @@ const QRScanner = ({ onScanSuccess, onClose }) => {
 
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
-    if (!file) return;
+    console.log("📁 File selected:", file);
+    
+    if (!file) {
+      console.log("❌ No file selected");
+      return;
+    }
 
     setError('');
+    console.log("🔄 Starting QR scan from file...");
+    console.log("📄 File details:", {
+      name: file.name,
+      type: file.type,
+      size: file.size
+    });
+    
     const html5QrCode = new Html5Qrcode("qr-reader");
     
     html5QrCode.scanFile(file, true)
       .then(decodedText => {
+        console.log("✅ QR Code scanned from file:", decodedText);
+        console.log("📏 Decoded text length:", decodedText.length);
+        
         try {
           const data = JSON.parse(decodedText);
+          console.log("✅ Parsed QR data successfully:", data);
+          console.log("📦 Product variety:", data.v || data.variety);
+          console.log("👨‍🌾 Farmer:", data.f || data.farmerName || data.farmer);
+          console.log("🚚 Distributor:", data.d || data.distributorName || data.distributor);
+          console.log("🏪 Retailer:", data.r || data.retailerName || data.retailer);
+          console.log("🎯 Calling onScanSuccess callback...");
+          
+          // Clean up first
+          html5QrCode.clear().catch(err => console.log("Clear error (ignore):", err));
+          
+          // Call callbacks
           onScanSuccess(data);
-          onClose();
+          console.log("✅ onScanSuccess callback completed");
+          
+          // Small delay before closing to ensure state updates
+          setTimeout(() => {
+            onClose();
+            console.log("✅ onClose callback completed");
+          }, 100);
+          
         } catch (err) {
-          console.error('QR parse error:', err);
+          console.error('❌ QR parse error:', err);
+          console.error('❌ Raw QR text:', decodedText);
           setError('Invalid QR code format. This doesn\'t appear to be a valid product QR code.');
+          html5QrCode.clear().catch(e => console.log("Clear error:", e));
         }
       })
       .catch(err => {
-        console.error('File scan error:', err);
-        setError('No QR code found in the uploaded image. Please try a different image.');
-      })
-      .finally(() => {
-        html5QrCode.clear();
+        console.error('❌ File scan error:', err);
+        console.error('❌ Error details:', {
+          message: err.message,
+          name: err.name,
+          stack: err.stack
+        });
+        
+        // More helpful error messages
+        if (err.name === 'NotFoundException') {
+          setError('No QR code found in this image. Please ensure:\n• The image contains a clear QR code\n• The QR code is not blurry or damaged\n• Try taking a new photo with better lighting');
+        } else {
+          setError('Failed to scan QR code. Please try a different image or take a new photo.');
+        }
+        
+        html5QrCode.clear().catch(e => console.log("Clear error:", e));
       });
   };
 
@@ -142,7 +201,8 @@ const QRScanner = ({ onScanSuccess, onClose }) => {
           ) : (
             <div className="scanner-active">
               <div className="scanner-instructions">
-                <p>Position the QR code within the frame</p>
+                <p>✨ Point camera at QR code - it will auto-detect anywhere in frame</p>
+                <p style={{ fontSize: '0.9em', opacity: 0.8 }}>No need to center it perfectly!</p>
                 <button className="btn btn-secondary stop-btn" onClick={stopScanning}>
                   Stop Scanning
                 </button>

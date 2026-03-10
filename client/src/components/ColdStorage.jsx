@@ -21,6 +21,7 @@ const ColdStorage = ({ farmerId }) => {
   ]);
   const [showTransactionModal, setShowTransactionModal] = useState(false);
   const [transactionDetails, setTransactionDetails] = useState(null);
+  const [transactionStatus, setTransactionStatus] = useState('processing'); // 'processing' or 'success'
   const [stockModal, setStockModal] = useState(false);
   const [selectedContainer, setSelectedContainer] = useState(null);
   const [stockAmount, setStockAmount] = useState('');
@@ -29,7 +30,7 @@ const ColdStorage = ({ farmerId }) => {
   const [selectedMapContainer, setSelectedMapContainer] = useState(null);
 
   const handleBuyContainer = async (container) => {
-    // Show transaction animation
+    // Show processing animation first
     setTransactionDetails({
       type: 'purchase',
       containerName: container.name,
@@ -37,16 +38,20 @@ const ColdStorage = ({ farmerId }) => {
       timestamp: new Date().toISOString()
     });
 
+    setTransactionStatus('processing');
     setShowTransactionModal(true);
 
-    // Simulate transaction delay
+    // After 2 seconds, show success
     setTimeout(() => {
-      setContainers(prev => prev.map(c => 
-        c.id === container.id ? { ...c, owned: true } : c
-      ));
-      setShowTransactionModal(false);
-      setTransactionDetails(null);
-    }, 3000);
+      setTransactionStatus('success');
+      
+      // After another 1 second, complete the purchase
+      setTimeout(() => {
+        setContainers(prev => prev.map(c => 
+          c.id === container.id ? { ...c, owned: true } : c
+        ));
+      }, 1000);
+    }, 2000);
   };
 
   const handleMapClick = (container) => {
@@ -255,22 +260,38 @@ const ColdStorage = ({ farmerId }) => {
       {showTransactionModal && (
         <div className="transaction-modal-overlay">
           <div className="transaction-modal">
-            <div className="eth-icon-large">⟠</div>
-            <h3>Transaction Successful!</h3>
-            <div className="transaction-details">
-              <p><strong>Container:</strong> {transactionDetails?.containerName}</p>
-              <p><strong>Amount:</strong> {transactionDetails?.amount} ETH</p>
-              <p><strong>Status:</strong> <span className="success-text">✓ Confirmed</span></p>
-            </div>
-            <button 
-              className="continue-btn"
-              onClick={() => {
-                setShowTransactionModal(false);
-                setTransactionDetails(null);
-              }}
-            >
-              Continue
-            </button>
+            {transactionStatus === 'processing' ? (
+              <>
+                <div className="eth-icon-large rotating">⟠</div>
+                <h3>Processing Transaction...</h3>
+                <div className="transaction-details">
+                  <p><strong>Container:</strong> {transactionDetails?.containerName}</p>
+                  <p><strong>Amount:</strong> {transactionDetails?.amount} ETH</p>
+                  <p><strong>Status:</strong> <span className="processing-text">⏳ Processing...</span></p>
+                </div>
+                <div className="loading-spinner"></div>
+              </>
+            ) : (
+              <>
+                <div className="eth-icon-large success">⟠</div>
+                <h3>Transaction Successful!</h3>
+                <div className="transaction-details">
+                  <p><strong>Container:</strong> {transactionDetails?.containerName}</p>
+                  <p><strong>Amount:</strong> {transactionDetails?.amount} ETH</p>
+                  <p><strong>Status:</strong> <span className="success-text">✓ Confirmed</span></p>
+                </div>
+                <button 
+                  className="continue-btn"
+                  onClick={() => {
+                    setShowTransactionModal(false);
+                    setTransactionDetails(null);
+                    setTransactionStatus('processing');
+                  }}
+                >
+                  Continue
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}

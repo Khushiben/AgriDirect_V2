@@ -97,22 +97,35 @@ const FarmerDashboard = ({ name, district }) => {
         return;
       }
 
+      console.log("🔄 Fetching products for farmer...");
+
       const res = await axios.get("http://localhost:5000/api/products", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
+      console.log("📦 All products from API:", res.data);
+
       // Only keep crops added by this farmer
       const myCrops = res.data.filter((crop) => {
-        const farmerId = crop.farmer && crop.farmer.toString ? crop.farmer.toString() : crop.farmer;
-        return farmerId === loggedInUserId;
+        // Handle both populated and non-populated farmer field
+        const farmerId = crop.farmer?._id || crop.farmer;
+        const farmerIdStr = farmerId?.toString ? farmerId.toString() : String(farmerId);
+        const loggedInUserIdStr = String(loggedInUserId);
+        const match = farmerIdStr === loggedInUserIdStr;
+        console.log(`Checking crop ${crop._id}: farmerId=${farmerIdStr}, loggedInUserId=${loggedInUserIdStr}, match=${match}`);
+        return match;
       });
 
-      // Separate pending and approved crops
+      console.log("👨‍🌾 My crops:", myCrops);
+
+      // Separate pending and verified crops
       const pending = myCrops.filter(crop => crop.status === "pending");
-      const approved = myCrops.filter(crop => crop.status === "approved");
+      const verified = myCrops.filter(crop => crop.status === "verified");
+
+      console.log("📊 Farmer crops:", { total: myCrops.length, pending: pending.length, verified: verified.length });
 
       setAddedCrops(pending); // Pending crops = waiting for admin approval
-      setSoldCrops(approved); // Approved crops = approved by admin
+      setSoldCrops(verified); // Verified crops = approved by admin
     } catch (error) {
       console.error("Error fetching products:", error);
     }
@@ -370,19 +383,20 @@ const FarmerDashboard = ({ name, district }) => {
                 <section className="location-area">
                   <div className="farm-map-card">
                     <h4>🗺️ Farm Location</h4>
-
-                    {address ? (
+                    <p style={{ fontSize: '0.9em', color: '#666', marginBottom: '10px' }}>
+                      📍 {farmer?.address || "MBIT Anand IND"}
+                    </p>
+                    <div style={{ height: '300px', width: '100%' }}>
                       <iframe
                         title="farm-map"
-                        loading="lazy"
+                        width="100%"
+                        height="100%"
+                        frameBorder="0"
+                        style={{ border: 0, borderRadius: '8px' }}
+                        src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${encodeURIComponent(farmer?.address || "MBIT Anand IND")}`}
                         allowFullScreen
-                        src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyCz5t2k2y2h2z2z2z2z2z2z2z2z2z2z2&q=${encodeURIComponent(
-                          address
-                        )}`}
                       ></iframe>
-                    ) : (
-                      <div className="map-loading">Loading map...</div>
-                    )}
+                    </div>
                   </div>
                 </section>
 
@@ -397,14 +411,11 @@ const FarmerDashboard = ({ name, district }) => {
                       ) : (
                         soldCrops.map((sale) => (
                           <div key={sale._id} className="crop-grid-item">
-                            {sale.product?.image ? (
-                              <img
-                                src="/rice.jpeg"
-                                alt={sale.product?.variety}
-                              />
-                            ) : (
-                              <div className="no-image">No image</div>
-                            )}
+                            <img
+                              src="https://lh3.googleusercontent.com/pw/AP1GczOYZe0-gl9tYo4EJ8ilUZClxIOQ4IvLq8JfM6bkt_t3zugpd64crKv3oJ6TPd_RNqxoTC1iIziNkyls9Lbe0Qr7JR04tqlzQ0mpLcz-6JtBe5l43Qd1n33dACBC5DEn-vh6uF3RjpUAfZoUWQlHvqwbDw=w327-h154-s-no-gm"
+                              alt={sale.product?.variety || "Rice"}
+                              style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: '8px' }}
+                            />
 
                             <div className="crop-grid-details">
                               <strong>{sale.product?.variety}</strong>
@@ -426,41 +437,22 @@ const FarmerDashboard = ({ name, district }) => {
                       {addedCrops.length === 0 ? (
                         <p className="empty-text">No crops waiting for approval</p>
                       ) : (
-                        addedCrops
-                          .filter(crop => {
-                            const farmerId = crop.farmer && crop.farmer.toString ? crop.farmer.toString() : crop.farmer;
-                            return farmerId === loggedInUserId;
-                          })
-                          .map((crop) => (
-                            <div key={crop._id} className="crop-grid-item">
-                              {crop.image ? (
-                                /\.(jpe?g|png|gif|webp|bmp)$/i.test(crop.image) ? (
-                                  <img
-                                    src="/rice.jpeg"
-                                    alt="Crop"
-                                  />
-                                ) : (
-                                  <a
-                                    href={`http://localhost:5000/uploads/licenses/${crop.image}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="no-image"
-                                  >
-                                    View file
-                                  </a>
-                                )
-                              ) : (
-                                <div className="no-image">No image</div>
-                              )}
+                        addedCrops.map((crop) => (
+                          <div key={crop._id} className="crop-grid-item">
+                            <img
+                              src="https://lh3.googleusercontent.com/pw/AP1GczOYZe0-gl9tYo4EJ8ilUZClxIOQ4IvLq8JfM6bkt_t3zugpd64crKv3oJ6TPd_RNqxoTC1iIziNkyls9Lbe0Qr7JR04tqlzQ0mpLcz-6JtBe5l43Qd1n33dACBC5DEn-vh6uF3RjpUAfZoUWQlHvqwbDw=w327-h154-s-no-gm"
+                              alt={crop.variety || "Rice"}
+                              style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: '8px' }}
+                            />
 
-                              <div className="crop-grid-details">
-                                <strong>{crop.variety}</strong>
-                                <p>₹ {crop.price}/kg</p>
-                                <p>Quantity: {crop.quantity} kg</p>
-                                <span className="status-badge pending">PENDING</span>
-                              </div>
+                            <div className="crop-grid-details">
+                              <strong>{crop.variety}</strong>
+                              <p>₹ {crop.price}/kg</p>
+                              <p>Quantity: {crop.quantity} kg</p>
+                              <span className="status-badge pending">PENDING</span>
                             </div>
-                          ))
+                          </div>
+                        ))
                       )}
                     </div>
                   </section>

@@ -822,16 +822,17 @@
 
 /* Enhanced Blockchain Loading Animation */
 .blockchain-loading-modal {
-  background: linear-gradient(135deg, #1a237e 0%, #311b92 50%, #4a148c 100%);
+  background: linear-gradient(135deg, #0d1117 0%, #161b22 50%, #0d1117 100%);
   border-radius: 20px;
   max-width: 900px;
   width: 100%;
   padding: 40px;
   color: white;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.8);
   max-height: 90vh;
   overflow-y: auto;
   position: relative;
+  border: 1px solid rgba(76, 175, 80, 0.3);
 }
 
 .loading-header {
@@ -839,39 +840,107 @@
   margin-bottom: 40px;
 }
 
-.eth-logo {
-  font-size: 64px;
-  margin-bottom: 16px;
-  animation: ethPulse 2s ease-in-out infinite;
+.eth-logo-container {
+  position: relative;
   display: inline-block;
+  margin-bottom: 20px;
 }
 
-@keyframes ethPulse {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.1); opacity: 0.8; }
+.eth-logo {
+  font-size: 72px;
+  display: inline-block;
+  animation: ethFloat 3s ease-in-out infinite;
+  position: relative;
+  z-index: 2;
+}
+
+@keyframes ethFloat {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.eth-rings {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+}
+
+.ring {
+  position: absolute;
+  border: 2px solid rgba(76, 175, 80, 0.3);
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.ring-1 {
+  width: 100px;
+  height: 100px;
+  animation: ringPulse 2s ease-in-out infinite;
+}
+
+.ring-2 {
+  width: 130px;
+  height: 130px;
+  animation: ringPulse 2s ease-in-out 0.3s infinite;
+}
+
+.ring-3 {
+  width: 160px;
+  height: 160px;
+  animation: ringPulse 2s ease-in-out 0.6s infinite;
+}
+
+@keyframes ringPulse {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.1);
+    opacity: 0.2;
+  }
 }
 
 .loading-header h2 {
   margin: 0 0 8px 0;
   font-size: 1.8em;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  font-weight: 700;
+  background: linear-gradient(90deg, #4CAF50, #66bb6a);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .loading-header p {
-  margin: 0 0 16px 0;
+  margin: 0 0 20px 0;
   opacity: 0.9;
   font-size: 1em;
 }
 
-.network-badge {
+.network-info {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.network-badge, .gas-badge {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(76, 175, 80, 0.15);
   border-radius: 20px;
   font-size: 0.9em;
-  backdrop-filter: blur(10px);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.gas-icon {
+  font-size: 1.2em;
 }
 
 .status-dot {
@@ -884,87 +953,81 @@
 
 @keyframes statusBlink {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
+  50% { opacity: 0.4; }
 }
 
 .blocks-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 8px;
   margin: 40px 0;
   padding: 20px;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.03);
   border-radius: 16px;
-  backdrop-filter: blur(10px);
+  border: 1px solid rgba(76, 175, 80, 0.2);
+  max-width: 100%;
 }
 
 .block {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
   opacity: 0.3;
-  transition: all 0.4s ease;
+  transform: scale(0.9);
+  transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .block.building {
-  animation: blockBuild 0.8s ease forwards;
+  animation: blockBuild 0.5s ease forwards;
 }
 
 .block.built {
   opacity: 1;
+  transform: scale(1);
 }
 
 @keyframes blockBuild {
   0% {
-    transform: scale(0.5) rotateY(90deg);
+    transform: scale(0.8) translateY(20px);
     opacity: 0;
   }
-  50% {
-    transform: scale(1.1) rotateY(45deg);
+  60% {
+    transform: scale(1.05) translateY(-5px);
   }
   100% {
-    transform: scale(1) rotateY(0deg);
+    transform: scale(1) translateY(0);
     opacity: 1;
   }
 }
 
 .block-inner {
-  background: linear-gradient(135deg, rgba(76, 175, 80, 0.2), rgba(69, 160, 73, 0.3));
-  border: 2px solid rgba(76, 175, 80, 0.5);
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(69, 160, 73, 0.2));
+  border: 2px solid rgba(76, 175, 80, 0.3);
   border-radius: 12px;
-  padding: 12px;
+  padding: 12px 8px;
   text-align: center;
-  min-width: 100px;
-  max-width: 120px;
-  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.2);
   transition: all 0.3s ease;
 }
 
 .block.built .block-inner {
-  background: linear-gradient(135deg, rgba(76, 175, 80, 0.4), rgba(69, 160, 73, 0.5));
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.3), rgba(69, 160, 73, 0.4));
   border-color: #4CAF50;
-  box-shadow: 0 0 20px rgba(76, 175, 80, 0.6);
+  box-shadow: 0 0 20px rgba(76, 175, 80, 0.4);
 }
 
 .block-number {
-  font-size: 0.65em;
+  font-size: 0.7em;
   opacity: 0.7;
   margin-bottom: 4px;
   font-family: 'Courier New', monospace;
-  word-break: break-all;
 }
 
 .block-icon {
-  font-size: 1.8em;
-  margin: 6px 0;
+  font-size: 2em;
+  margin: 8px 0;
 }
 
 .block-label {
-  font-size: 0.8em;
+  font-size: 0.85em;
   font-weight: 600;
-  margin: 6px 0 4px 0;
+  margin: 6px 0;
 }
 
 .block-hash {
@@ -972,84 +1035,130 @@
   opacity: 0.6;
   font-family: 'Courier New', monospace;
   margin-top: 4px;
-  word-break: break-all;
+}
+
+.block-timestamp {
+  font-size: 0.65em;
+  opacity: 0.5;
+  margin-top: 4px;
+  font-family: 'Courier New', monospace;
 }
 
 .block-connector {
-  width: 30px;
-  height: 3px;
-  background: rgba(76, 175, 80, 0.3);
-  position: relative;
-  transition: all 0.4s ease;
-  flex-shrink: 0;
-}
-
-.block.built + .block .block-connector {
-  background: #4CAF50;
-  box-shadow: 0 0 10px rgba(76, 175, 80, 0.8);
-}
-
-.block.built .block-connector {
-  background: #4CAF50;
-  box-shadow: 0 0 10px rgba(76, 175, 80, 0.8);
-  animation: connectorGlow 0.4s ease;
-}
-
-@keyframes connectorGlow {
-  0% { width: 0; opacity: 0; }
-  100% { width: 30px; opacity: 1; }
+  display: none;
 }
 
 .data-reveal {
   text-align: center;
-  padding: 24px;
-  background: rgba(76, 175, 80, 0.2);
-  border-radius: 12px;
-  margin-top: 24px;
-  animation: revealFade 0.5s ease;
+  padding: 30px;
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.2), rgba(69, 160, 73, 0.3));
+  border-radius: 16px;
+  margin-top: 30px;
+  animation: revealFade 0.6s ease;
+  border: 2px solid rgba(76, 175, 80, 0.5);
 }
 
 @keyframes revealFade {
-  from { opacity: 0; transform: scale(0.9); }
-  to { opacity: 1; transform: scale(1); }
+  from { 
+    opacity: 0; 
+    transform: scale(0.95) translateY(10px);
+  }
+  to { 
+    opacity: 1; 
+    transform: scale(1) translateY(0);
+  }
+}
+
+.reveal-icon-container {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 16px;
 }
 
 .reveal-icon {
-  font-size: 48px;
-  margin-bottom: 12px;
-  animation: ethRotate 2s linear infinite;
+  font-size: 56px;
+  position: relative;
+  z-index: 2;
+  animation: iconSpin 1s ease-in-out;
 }
 
-@keyframes ethRotate {
+@keyframes iconSpin {
   from { transform: rotateY(0deg); }
   to { transform: rotateY(360deg); }
 }
 
+.success-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80px;
+  height: 80px;
+  border: 3px solid #4CAF50;
+  border-radius: 50%;
+  animation: ringExpand 0.6s ease;
+}
+
+@keyframes ringExpand {
+  0% {
+    width: 0;
+    height: 0;
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    width: 80px;
+    height: 80px;
+    opacity: 0.5;
+  }
+}
+
 .reveal-text {
-  font-size: 1.3em;
+  font-size: 1.4em;
   font-weight: 700;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
   color: #4CAF50;
-  text-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
 }
 
 .reveal-checkmark {
   font-size: 3em;
   color: #4CAF50;
-  animation: checkmarkBounce 0.6s ease;
+  animation: checkmarkBounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  margin-bottom: 16px;
 }
 
 @keyframes checkmarkBounce {
-  0% { transform: scale(0) rotate(0deg); }
-  50% { transform: scale(1.2) rotate(180deg); }
-  100% { transform: scale(1) rotate(360deg); }
+  0% { transform: scale(0); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
 }
 
-.gas-info {
-  margin-top: 12px;
+.reveal-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+}
+
+.reveal-details .detail-item {
+  display: flex;
+  justify-content: space-between;
   font-size: 0.9em;
-  opacity: 0.8;
   font-family: 'Courier New', monospace;
+}
+
+.reveal-details .detail-item span:first-child {
+  opacity: 0.7;
+}
+
+.reveal-details .detail-item span:last-child {
+  color: #4CAF50;
+  font-weight: 600;
 }
 
 .loading-progress {
@@ -1064,13 +1173,22 @@
   margin-bottom: 16px;
 }
 
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #4CAF50, #45a049, #4CAF50);
+  background: linear-gradient(90deg, #4CAF50, #66bb6a, #4CAF50);
   background-size: 200% 100%;
   border-radius: 4px;
-  transition: width 0.4s ease;
-  animation: progressShine 2s linear infinite;
+  transition: width 0.5s ease;
+  animation: progressShine 1.5s linear infinite;
   box-shadow: 0 0 15px rgba(76, 175, 80, 0.8);
 }
 
@@ -1081,9 +1199,10 @@
 
 .progress-text {
   text-align: center;
-  font-size: 1.1em;
-  margin: 0 0 12px 0;
+  font-size: 1.05em;
+  margin: 16px 0 12px 0;
   font-weight: 600;
+  min-height: 28px;
 }
 
 .tech-details {
@@ -1092,10 +1211,11 @@
   padding: 12px;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 8px;
-  font-size: 0.9em;
+  font-size: 0.85em;
   font-family: 'Courier New', monospace;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 12px;
+  border: 1px solid rgba(76, 175, 80, 0.2);
 }
 
 .tech-details span {
@@ -1106,43 +1226,53 @@
 @media (max-width: 768px) {
   .blockchain-loading-modal {
     padding: 24px;
+    max-width: 95%;
   }
   
   .blocks-container {
-    flex-direction: column;
-    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: 6px;
     padding: 16px;
   }
   
-  .block {
-    width: 100%;
-    max-width: 100%;
-  }
-  
   .block-inner {
-    max-width: 100%;
+    padding: 8px 4px;
   }
   
-  .block-connector {
-    width: 3px;
-    height: 30px;
-    margin: 0 auto;
+  .block-icon {
+    font-size: 1.5em;
   }
   
-  .block.built .block-connector {
-    animation: connectorGlowVertical 0.4s ease;
+  .block-label {
+    font-size: 0.75em;
   }
   
-  @keyframes connectorGlowVertical {
-    0% { height: 0; opacity: 0; }
-    100% { height: 30px; opacity: 1; }
+  .block-number, .block-hash, .block-timestamp {
+    font-size: 0.6em;
   }
   
   .eth-logo {
-    font-size: 48px;
+    font-size: 56px;
   }
   
   .loading-header h2 {
     font-size: 1.4em;
+  }
+  
+  .network-info {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .reveal-icon {
+    font-size: 42px;
+  }
+  
+  .reveal-text {
+    font-size: 1.1em;
+  }
+  
+  .reveal-checkmark {
+    font-size: 2.5em;
   }
 }

@@ -38,9 +38,11 @@ const ConsumerMarketplace = () => {
   };
 
   const handleQRScanSuccess = (productData) => {
+    console.log("🎉 CONSUMER MARKETPLACE: QR Scan Success! Product data received:", productData);
     setScannedProduct(productData);
     setShowQRScanner(false);
     setShowTraceability(true);
+    console.log("🎉 CONSUMER MARKETPLACE: Traceability modal should now be visible");
   };
 
   const closeQRScanner = () => {

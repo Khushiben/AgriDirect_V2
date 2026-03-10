@@ -183,8 +183,7 @@ const [pestCount, setPestCount] = useState(0);
     damaged: "1",
     polishing: "Single",
     aging: "Fresh",
-    location: "Anand, India",
-    image: null 
+    location: "Anand, India"
   });
 
   //pest data
@@ -267,36 +266,28 @@ const handleSubmit = async (e) => {
 
   try {
     const storedUser = JSON.parse(localStorage.getItem("user"));
-    // ✅ Create FormData object
-    const data = new FormData();
+    
+    // Create regular JSON object (no FormData needed)
+    const data = {
+      ...formData,
+      farmerId: storedUser.userId,
+      // Use fixed Google Photos rice image
+      image: "https://lh3.googleusercontent.com/pw/AP1GczOYZe0-gl9tYo4EJ8ilUZClxIOQ4IvLq8JfM6bkt_t3zugpd64crKv3oJ6TPd_RNqxoTC1iIziNkyls9Lbe0Qr7JR04tqlzQ0mpLcz-6JtBe5l43Qd1n33dACBC5DEn-vh6uF3RjpUAfZoUWQlHvqwbDw=w327-h154-s-no-gm",
+      pests: JSON.stringify(formData.pests)
+    };
 
-    // Append all fields except image
-    Object.keys(formData).forEach((key) => {
-      if (key === "pests") {
-        data.append("pests", JSON.stringify(formData.pests)); 
-      } 
-      else if (key !== "image") {
-        data.append(key, formData[key]);
-      }
-    });
-    data.append("farmerId", storedUser.userId);
-
-    // ✅ Append image separately
-    if (formData.image) {
-      data.append("image", formData.image);
-    }
-
-    const token = localStorage.getItem("token");
     const response = await axios.post(
       "http://localhost:5000/api/products/add",
       data,
       {
         headers: {
-          "Content-Type": "multipart/form-data",
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
       }
     );
+
+    console.log("✅ Product added successfully:", response.data);
 
     // Show ETH transaction modal
     const gasFee = (Math.random() * 0.01 + 0.005).toFixed(4);
@@ -444,17 +435,6 @@ const nonBasmatiVarieties = [
          ))}
          </select>
 
-</div>
-<div className="image-upload-section">
-  <label>Upload Product Photo</label>
-  <input
-    type="file"
-    accept="image/*"
-    onChange={(e) =>
-      setFormData({ ...formData, image: e.target.files[0] })
-    }
-    required
-  />
 </div>
 <div>
         {/* Crop Season */}

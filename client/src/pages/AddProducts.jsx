@@ -24,8 +24,7 @@ export default function AddDProduct() {
     otherCost: "0",
     purchasePrice: purchase?.pricePerKg || "",
     sellingPrice: "",
-    quantity: purchase?.quantity || "",
-    productImage: null,
+    quantity: purchase?.quantity || ""
   });
 
   const [profit, setProfit] = useState(0);
@@ -35,12 +34,8 @@ export default function AddDProduct() {
   const [txStatus, setTxStatus] = useState("processing");
 
   const handleChange = (e) => {
-    const { name, value, files } = e.target;
-    if (name === "productImage") {
-      setFormData({ ...formData, productImage: files[0] });
-    } else {
-      setFormData({ ...formData, [name]: value });
-    }
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
   };
 
   // Auto Profit Calculation
@@ -80,8 +75,15 @@ export default function AddDProduct() {
       data.append("variety", purchase.variety);
       data.append("productId", purchase.product?._id || purchase.product);
 
-      if (formData.productImage)
-        data.append("productImage", formData.productImage);
+      // Use fixed Google Photos rice image
+      data.append("productImage", "https://lh3.googleusercontent.com/pw/AP1GczOYZe0-gl9tYo4EJ8ilUZClxIOQ4IvLq8JfM6bkt_t3zugpd64crKv3oJ6TPd_RNqxoTC1iIziNkyls9Lbe0Qr7JR04tqlzQ0mpLcz-6JtBe5l43Qd1n33dACBC5DEn-vh6uF3RjpUAfZoUWQlHvqwbDw=w327-h154-s-no-gm");
+      
+      // Pass supply chain data
+      data.append("purchaseTxHash", purchase.purchaseTxHash || "N/A");
+      data.append("adminApprovalTx", purchase.adminApprovalTx || "N/A");
+      data.append("farmerName", purchase.farmerName || "Unknown Farmer");
+      data.append("farmerLocation", purchase.farmerLocation || "Unknown Location");
+      data.append("adminName", purchase.adminName || "Unknown Admin");
 
       const token = localStorage.getItem("token");
 
@@ -140,8 +142,8 @@ export default function AddDProduct() {
 
           {purchase.product?.image && (
             <img
-              src={`http://localhost:5000/uploads/licenses/${purchase.product.image}`}
-              alt={purchase.variety}
+              src="https://lh3.googleusercontent.com/pw/AP1GczOYZe0-gl9tYo4EJ8ilUZClxIOQ4IvLq8JfM6bkt_t3zugpd64crKv3oJ6TPd_RNqxoTC1iIziNkyls9Lbe0Qr7JR04tqlzQ0mpLcz-6JtBe5l43Qd1n33dACBC5DEn-vh6uF3RjpUAfZoUWQlHvqwbDw=w327-h154-s-no-gm"
+              alt={purchase.variety || "Rice"}
               style={{ width: "200px", margin: "10px 0", borderRadius: "10px" }}
             />
           )}
@@ -272,17 +274,9 @@ export default function AddDProduct() {
 
           {minPrice > 0 && maxPrice > 0 && (
             <p className="price-range-hint">
-              💡 Suggested range: ₹{minPrice} - ₹{maxPrice}
+              💡 Admin Approved range: ₹{minPrice} - ₹{maxPrice}
             </p>
           )}
-
-          <label>Upload Product Photo</label>
-          <input
-            type="file"
-            name="productImage"
-            accept="image/*"
-            onChange={handleChange}
-          />
         </div>
 
         <div className="profit-display">

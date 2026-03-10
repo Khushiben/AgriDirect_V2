@@ -113,9 +113,11 @@ console.log("Password matched");
     return res.status(200).json({
       success: true,
       role: user.role,
+      name: user.name, // ✅ Add name
+      email: user.email, // ✅ Add email
       message: "Login successful",
       userId: user._id,
-      token :token,
+      token: token,
     });
   } catch (error) {
     console.error("Login error:", error);

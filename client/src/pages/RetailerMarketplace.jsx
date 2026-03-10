@@ -14,10 +14,12 @@ const RetailerMarketplace = () => {
   useEffect(() => {
     const fetchRetailerProducts = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/retailer-products");
+        console.log("🔄 Fetching distributor marketplace products for retailers...");
+        const res = await axios.get("http://localhost:5000/api/distributortomarketplaces");
+        console.log("📦 Distributor products:", res.data);
         setProducts(res.data);
       } catch (error) {
-        console.error("Error fetching retailer products:", error);
+        console.error("Error fetching distributor products:", error);
       }
     };
     fetchRetailerProducts();
@@ -45,17 +47,14 @@ const RetailerMarketplace = () => {
         {products.map((item) => (
           <div key={item._id} className="crop-grid-item">
             <img
-              src={
-                item.productImage
-                  ? `http://localhost:5000/uploads/licenses/${item.productImage}`
-                  : "https://via.placeholder.com/300x200?text=No+Image"
-              }
-              alt={item.variety}
+              src="https://lh3.googleusercontent.com/pw/AP1GczOYZe0-gl9tYo4EJ8ilUZClxIOQ4IvLq8JfM6bkt_t3zugpd64crKv3oJ6TPd_RNqxoTC1iIziNkyls9Lbe0Qr7JR04tqlzQ0mpLcz-6JtBe5l43Qd1n33dACBC5DEn-vh6uF3RjpUAfZoUWQlHvqwbDw=w327-h154-s-no-gm"
+              alt={item.variety || "Rice"}
+              style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: '8px' }}
             />
 
             <div className="crop-grid-details">
               <strong>{item.variety || 0}</strong>
-              <p>Price: ₹ {item.sellingPrice} /kg</p>
+              <p>Price: ₹ {item.sellingPrice || item.pricePerKg || 0} /kg</p>
               <p>Distributor: {item.buyerName || "Anonymous"}</p>
               <p>Available Quantity: {item.quantity} kg</p>
 
@@ -88,13 +87,9 @@ const RetailerMarketplace = () => {
             <div className="admin-modal-info">
               <h2>{selectedProduct.variety}</h2>
               <img
-                src={
-                  selectedProduct.productImage
-                    ? `http://localhost:5000/uploads/licenses/${selectedProduct.productImage}`
-                    : "https://via.placeholder.com/300x200?text=No+Image"
-                }
-                alt={selectedProduct.variety}
-                style={{ width: "100%", maxHeight: "200px", objectFit: "cover", marginBottom: "10px" }}
+                src="https://lh3.googleusercontent.com/pw/AP1GczOYZe0-gl9tYo4EJ8ilUZClxIOQ4IvLq8JfM6bkt_t3zugpd64crKv3oJ6TPd_RNqxoTC1iIziNkyls9Lbe0Qr7JR04tqlzQ0mpLcz-6JtBe5l43Qd1n33dACBC5DEn-vh6uF3RjpUAfZoUWQlHvqwbDw=w327-h154-s-no-gm"
+                alt={selectedProduct.variety || "Rice"}
+                style={{ width: "100%", maxHeight: "200px", objectFit: "cover", marginBottom: "10px", borderRadius: "8px" }}
               />
               <p><strong>Distributor:</strong> {selectedProduct.buyerName || 'Unknown'}</p>
               <p><strong>Quantity:</strong> {selectedProduct.quantity} kg</p>
