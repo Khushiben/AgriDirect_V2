@@ -40,6 +40,23 @@ const DistributorDashboard = () => {
     }
   };
 
+<<<<<<< HEAD
+=======
+  // 🏪 Fetch distributor marketplace products
+  const fetchMarketplaceProducts = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.get(
+        "http://localhost:5000/api/distributortomarketplaces/my-products",
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setMarketplaceProducts(res.data);
+    } catch (error) {
+      console.error("Error fetching marketplace products:", error);
+    }
+  };
+
+>>>>>>> d026356 (dockerize all things,changed some code and final update d version)
   useEffect(() => {
     fetchRequests();
     fetchPurchases();
@@ -85,6 +102,20 @@ const DistributorDashboard = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+<<<<<<< HEAD
+=======
+  // 📊 PROFIT CALCULATION
+  const totalPurchaseCost = purchases.reduce(
+    (sum, p) => sum + p.totalPrice,
+    0
+  );
+
+ const totalSellingRevenue = marketplaceProducts
+  .filter((p) => p.status === "COMPLETED")
+  .reduce((sum, p) => sum + (p.totalSoldPrice || 0), 0);
+  const totalProfit = totalSellingRevenue - totalPurchaseCost;
+
+>>>>>>> d026356 (dockerize all things,changed some code and final update d version)
   return (
     <div className="distributor-dashboard">
       <div className="dashboard-header">
@@ -120,6 +151,7 @@ const DistributorDashboard = () => {
       {/* 🛒 PURCHASED PRODUCTS */}
       <center><h2 style={{ marginTop: "30px" }}>🛒 Purchased Products 🛒 </h2></center>
 
+<<<<<<< HEAD
       <div className="crops-grid">
         {purchases.length === 0 && <p>No purchases yet.</p>}
 
@@ -147,6 +179,143 @@ const DistributorDashboard = () => {
               >
                 Get Details
               </button>
+=======
+      {/* 🔥 RESPONSIVE GRID LAYOUT */}
+      <div className="dashboard-grid-container">
+
+        {/* ================= COLUMN 1 ================= */}
+        <div className="dashboard-column">
+          <center><h2 className="column-title">🛒 Purchased Crops</h2></center>
+          <div className="crops-grid">
+            {purchases.length === 0 && <p>No purchases yet.</p>}
+            {purchases.map((p) => (
+              <div key={p._id} className="crop-grid-item">
+                <img
+                  src={p.product?.image || `https://images.unsplash.com/photo-1511735643442-503bb3bd348a?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Y3JvcHxlbnwwfHwwfHx8MA%3D%3D/327x154/?${p.variety || "farm,crop"}`}
+                  alt={p.variety || "Rice"}
+                  className="crop-image"
+                  style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: '8px', marginBottom: '10px' }}
+                />
+
+                <div className="crop-grid-details">
+                  <strong style={{ fontSize: '1.7rem', color: '#2e7d32' }}>{p.variety}</strong>
+
+                  <div style={{ marginTop: '10px', textAlign: 'left', color: '#2e7d32' }}>
+                    <p><span>👨‍🌾 Farmer:</span> {p.farmerName || p.farmer?.name || "Unknown"}</p>
+                    <p><span>📍 Location:</span> {p.farmerLocation || p.farmer?.address || "N/A"}</p>
+                    <p><span>💰 Price:</span> ₹{p.pricePerKg}/kg</p>
+                    <p><span>📦 Quantity:</span> {p.quantity} kg</p>
+                    <p><span>💵 Total Cost:</span> ₹{p.totalPrice}</p>
+                    <p><span>🔗 Purchase TX:</span> {p.purchaseTxHash?.substring(0, 10)}...{p.purchaseTxHash?.substring(p.purchaseTxHash.length - 6)}</p>
+                    <p><span>📅 Date:</span> {new Date(p.createdAt).toLocaleDateString()}</p>
+                  </div>
+
+                  <span className="status-badge verified" style={{ marginTop: '10px' }}>PURCHASED</span>
+
+                  <button
+                    className="add-to-marketplace-btn"
+                    onClick={() => navigateToAddProduct(p)}
+                    style={{ marginTop: '10px', width: '100%' }}
+                  >
+                    ➕ Add to Marketplace
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ================= COLUMN 2 ================= */}
+        <div className="dashboard-column">
+          <center><h2 className="column-title">🏪 Marketplace Crops</h2></center>
+          <div className="crops-grid">
+            {marketplaceProducts.length === 0 && <p>No products added.</p>}
+            {marketplaceProducts.map((p) => (
+              <div key={p._id} className="crop-grid-item">
+                <img
+                  src={p.product?.image || `https://images.unsplash.com/photo-1511735643442-503bb3bd348a?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Y3JvcHxlbnwwfHwwfHx8MA%3D%3D/327x154/?${p.variety || "farm,crop"}`}
+                  alt={p.variety || "Rice"}
+                  className="crop-image"
+                  style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: '8px', marginBottom: '10px' }}
+                />
+
+                <div className="crop-grid-details">
+                  <strong style={{ fontSize: '1.2em', color: '#2e7d32' }}>{p.variety}</strong>
+
+                  <div style={{ marginTop: '10px', textAlign: 'left' }}>
+                    <p><strong>👨‍🌾 Farmer:</strong> {p.farmerName || "Unknown"}</p>
+                    <p><strong>📍 Location:</strong> {p.farmerLocation || "N/A"}</p>
+                    <p><strong>💰 Selling Price:</strong> ₹{p.sellingPrice}/kg</p>
+                    <p><strong>📦 Available:</strong> {p.quantity} kg</p>
+                    <p><strong>💵 Purchase Cost:</strong> ₹{p.purchasePrice}/kg</p>
+                    <p><strong>📈 Profit/kg:</strong> ₹{p.profit}</p>
+                    {p.status === "COMPLETED" && p.totalSoldPrice && (
+                      <p><strong>💰 Total Sold:</strong> ₹{p.totalSoldPrice}</p>
+                    )}
+                    <p><strong>🔗 Listing TX:</strong> <code style={{ fontSize: '0.7em' }}>{p.listingTxHash?.substring(0, 10)}...{p.listingTxHash?.substring(p.listingTxHash?.length - 6)}</code></p>
+                  </div>
+
+                  {p.status === "COMPLETED" ? (
+                    <span className="status-badge verified" style={{ marginTop: '10px' }}>✅ COMPLETED</span>
+                  ) : (
+                    <span className="status-badge pending" style={{ marginTop: '10px' }}>⏳ AVAILABLE</span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ================= COLUMN 3 ================= */}
+        <div className="dashboard-column">
+          <center><h2 className="column-title">📊 Profit Analysis</h2></center>
+
+          <div className="crop-grid-item">
+            <div className="crop-grid-details" style={{ textAlign: 'left', padding: '20px', margin: '20px 0 20px 0' }}>
+              <div style={{ marginBottom: '15px' }}>
+                <p style={{ fontSize: '1.4em', color: '#666', marginBottom: '5px' }}>Total Purchase Cost</p>
+                <p style={{ fontSize: '1.5em', fontWeight: 'bold', color: '#f44336' }}>₹ {totalPurchaseCost.toLocaleString()}</p>
+              </div>
+
+              <div style={{ marginBottom: '15px' }}>
+                <p style={{ fontSize: '1.4em', color: '#666', marginBottom: '5px' }}>Total Selling Revenue</p>
+                <p style={{ fontSize: '1.5em', fontWeight: 'bold', color: '#4caf50' }}>₹ {totalSellingRevenue.toLocaleString()}</p>
+              </div>
+
+              <hr style={{ margin: '15px 0', border: 'none', borderTop: '2px solid #ddd' }} />
+
+              <div style={{ marginBottom: '15px' }}>
+                <p style={{ fontSize: '0.9em', color: '#666', marginBottom: '5px' }}>Net Profit/Loss</p>
+                <h3 style={{
+                  fontSize: '2em',
+                  fontWeight: 'bold',
+                  color: totalProfit >= 0 ? "#4caf50" : "#f44336",
+                  margin: '10px 0'
+                }}>
+                  {totalProfit >= 0 ? '📈' : '📉'} ₹ {totalProfit.toLocaleString()}
+                </h3>
+              </div>
+
+              <div style={{ marginTop: '20px', padding: '15px', background: '#f5f5f5', borderRadius: '8px' }}>
+                <p style={{ fontSize: '0.85em', color: '#666', marginBottom: '8px' }}>
+                  <strong>📦 Total Purchases:</strong> {purchases.length}
+                </p>
+                <p style={{ fontSize: '0.85em', color: '#666', marginBottom: '8px' }}>
+                  <strong>🏪 Listed Products:</strong> {marketplaceProducts.length}
+                </p>
+                <p style={{ fontSize: '0.85em', color: '#666' }}>
+                  <strong>✅ Completed Sales:</strong> {marketplaceProducts.filter(p => p.status === "COMPLETED").length}
+                </p>
+              </div>
+
+              {totalProfit > 0 && (
+                <div style={{ marginTop: '15px', padding: '10px', background: '#e8f5e9', borderRadius: '8px', textAlign: 'center' }}>
+                  <p style={{ fontSize: '0.85em', color: '#2e7d32', margin: 0 }}>
+                    🎉 Great job! You're making profit!
+                  </p>
+                </div>
+              )}
+>>>>>>> d026356 (dockerize all things,changed some code and final update d version)
             </div>
           </div>
         ))}

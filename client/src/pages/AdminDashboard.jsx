@@ -101,6 +101,7 @@ const AdminDashboard = () => {
 </marquee>
         
 
+<<<<<<< HEAD
         <div className="crops-grid">
           {products.map((crop) => (
             <div key={crop._id} className="crop-grid-item">
@@ -110,41 +111,75 @@ const AdminDashboard = () => {
                   alt={crop.variety || "Crop"}
                 />
               </div>
+=======
+      <div className="crops-grid">
+  {displayedProducts.map((crop) => (
+    <div 
+      key={crop._id} 
+      className={`crop-grid-item ${crop.isAssignedToMe ? 'assigned-to-me' : 'view-only'}`}
+    >
+      <div className="img-wrapper">
+        <img
+          src={crop.image || `https://images.unsplash.com/photo-1511735643442-503bb3bd348a?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Y3JvcHxlbnwwfHwwfHx8MA%3D%3D/327x154/?${crop.variety || "farm,crop"}`}
+          alt={crop.variety || "Crop"}
+          style={{ width: '100%', height: '200px', objectFit: 'cover', borderRadius: '8px' }}
+        />
+      </div>
+>>>>>>> d026356 (dockerize all things,changed some code and final update d version)
 
-              <div className="crop-grid-details">
-                <div>
-                  <strong>{crop.variety}</strong>
-                  <p>₹ {crop.price}</p>
-                  <p>Farmer: {crop.farmer?.name}</p>
+      <div className="crop-grid-details">
+        <div>
+          <strong>{crop.variety}</strong>
+          <p>₹ {crop.price}</p>
+          <p>Farmer: {crop.farmer?.name}</p>
 
-                  {/* STATUS BADGE */}
-                  {crop.status && (
-                    <p className={`status-badge ${crop.status}`}>
-                      {crop.status.toUpperCase()}
-                    </p>
-                  )}
-                </div>
+          {/* Show assignment info */}
+          <p style={{ fontSize: '0.8em', marginTop: '4px' }}>
+            {crop.isAssignedToMe 
+              ? <span style={{ color: '#4CAF50' }}>✅ Assigned to you</span>
+              : <span style={{ color: '#888' }}>👁️ Assigned to: {crop.assignedAdmin?.name || "another admin"}</span>
+            }
+          </p>
 
-                <div className="card-buttons">
-                  <button
-                    className="options-btn"
-                    onClick={() => openDetails(crop)}
-                  >
-                    ...
-                  </button>
-
-                  <button
-                    className="marketplace-btn"
-                    onClick={() => openMarketplaceForm(crop)}
-                    disabled={crop.status === "verified"}
-                  >
-                    {crop.status === "verified" ? "Already Verified" : "Add to Marketplace"}
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
+          {crop.status && (
+            <p className={`status-badge ${crop.status}`}>
+              {crop.status.toUpperCase()}
+            </p>
+          )}
         </div>
+
+        <div className="card-buttons">
+          {/* All admins can view details */}
+          <button
+            className="options-btn"
+            onClick={() => openDetails(crop)}
+          >
+            ...
+          </button>
+
+          {/* Only assigned admin sees approve button */}
+          {crop.isAssignedToMe ? (
+            <button
+              className="marketplace-btn"
+              onClick={() => openMarketplaceForm(crop)}
+              disabled={crop.status === "verified"}
+            >
+              {crop.status === "verified" ? "Already Verified" : "Approve & Set Price"}
+            </button>
+          ) : (
+            <button 
+              className="marketplace-btn" 
+              disabled
+              style={{ backgroundColor: '#ccc', cursor: 'not-allowed', color: '#666' }}
+            >
+              👁️ View Only
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  ))}
+</div>
       </section>
 
       {/* EXISTING DETAILS MODAL (UNCHANGED) */}
@@ -160,8 +195,14 @@ const AdminDashboard = () => {
             <div className="admin-modal-body">
               <div className="admin-modal-image">
                 <img
+<<<<<<< HEAD
                   src={`http://localhost:5000/uploads/licenses/${selectedProduct.image}`}
                   alt={selectedProduct.variety}
+=======
+                  src={selectedProduct.image || `https://images.unsplash.com/photo-1511735643442-503bb3bd348a?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Y3JvcHxlbnwwfHwwfHx8MA%3D%3D/600x400/?${selectedProduct.variety || "farm,crop"}`}
+                  alt={selectedProduct.variety || "Rice"}
+                  style={{ width: '100%', maxWidth: '400px', height: 'auto', borderRadius: '8px' }}
+>>>>>>> d026356 (dockerize all things,changed some code and final update d version)
                 />
               </div>
               <div className="admin-modal-info">

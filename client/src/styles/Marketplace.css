@@ -1,34 +1,77 @@
 .marketplace-page {
-  padding: 28px;
-}
-.crops-grid {
-  display: grid;
-  /* larger cards so details are visible */
-  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-  gap: 24px;
-}
-.crop-grid-item {
-  border: 1px solid #e6e6e6;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 50%, #a5d6a7 100%);
   padding: 0;
-  border-radius: 12px;
-  background: #fff;
-  box-shadow: 0 10px 26px rgba(8,24,48,0.06);
-  overflow: hidden;
-  transition: transform .25s ease, box-shadow .25s ease;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  overflow-y: auto;  /* ← change this */
 }
-.crop-grid-item:hover { transform: translateY(-8px); box-shadow: 0 22px 48px rgba(8,24,48,0.12); }
-.crop-grid-item img {
+
+/* AFTER */
+.m-crops-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 20px clamp(15px, 3vw, 40px);  /* ← add horizontal padding */
+  padding-bottom: 40px;
+  align-items: start;
+}
+/* Crop Card */
+.m-crop-grid-item {
+  background: white;
+  border-radius: 12px;
+  padding: 0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+  border: 1px solid #edf2f7;
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
+  height: auto;
+}
+
+.m-crop-grid-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  border-color: #cbd5e0;
+}
+
+.m-crop-grid-item img {
   width: 100%;
-  height: 260px;
+  height: 140px;
   object-fit: cover;
   display: block;
 }
-.crop-grid-details {
-  padding: 14px 16px;
+
+.m-crop-grid-item:hover img {
+  transform: scale(1.05);
+}
+
+.m-crop-grid-details {
+  padding: 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
+
+.m-crop-grid-details strong {
+  font-size: clamp(1.1rem, 2vw, 1.3rem);
+  color: #2e7d32;
+  font-weight: 700;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.m-crop-grid-details p {
+  margin: 4px 0;
+  color: #558b2f;
+  font-size: clamp(0.9rem, 1.5vw, 1rem);
+  font-weight: 500;
+}
+
+/* Card Buttons */
 .card-buttons {
   margin-top: 8px;
   display: flex;
@@ -86,10 +129,140 @@
 }
 .modal {
   background: white;
-  padding: 20px;
-  border-radius: 8px;
-  max-width: 500px;
-  width: 90%;
+  border-radius: 25px;
+  max-width: 700px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 25px 70px rgba(46, 125, 50, 0.4);
+  animation: slideUp 0.4s ease;
+  border: 3px solid #66bb6a;
+  padding: 30px;
 }
-.modal-close { position: absolute; right: 15px; top: 15px; background:transparent;border:none;font-size:20px;cursor:pointer }
+
+.modal::-webkit-scrollbar {
+  width: 15px;
+}
+
+.modal::-webkit-scrollbar-track {
+  background: #e8f5e9;
+  border-radius: 10px;
+}
+
+.modal::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #43a047 0%, #66bb6a 100%);
+  border-radius: 10px;
+}
+
+.modal-close {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: linear-gradient(135deg, #e53935 0%, #f44336 100%);
+  color: white;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 10;
+  box-shadow: 0 4px 15px rgba(229, 57, 53, 0.4);
+}
+
+.modal-close:hover {
+  transform: rotate(90deg) scale(1.1);
+  box-shadow: 0 6px 20px rgba(229, 57, 53, 0.6);
+}
+
+.admin-modal-info h2 {
+  color: #2e7d32;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  margin-bottom: 20px;
+  font-weight: 800;
+}
+
+.admin-modal-info h4 {
+  color: #388e3c;
+  font-size: clamp(1.1rem, 2vw, 1.3rem);
+  margin: 25px 0 15px 0;
+  font-weight: 700;
+  border-bottom: 2px solid #c8e6c9;
+  padding-bottom: 8px;
+}
+
+.admin-modal-info p {
+  margin: 10px 0;
+  color: #558b2f;
+  font-size: clamp(0.9rem, 1.5vw, 1rem);
+  line-height: 1.6;
+}
+
+.admin-modal-info strong {
+  color: #2e7d32;
+  font-weight: 700;
+}
+
+.admin-modal-info ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.admin-modal-info li {
+  background: #f1f8e9;
+  padding: 10px;
+  margin: 8px 0;
+  border-radius: 8px;
+  border-left: 4px solid #66bb6a;
+  color: #558b2f;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(50px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .m-crops-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .card-buttons {
+    flex-direction: column;
+  }
+
+  .modal {
+    max-height: 95vh;
+    padding: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .marketplace-page {
+    padding: 10px;
+  }
+
+  .m-crop-grid-item img {
+    height: 180px;
+  }
+}
 

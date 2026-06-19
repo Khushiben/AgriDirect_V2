@@ -67,21 +67,24 @@ const closeDetails = () => setSelectedProduct(null);
 
   return (
     <div className="marketplace-page">
-      <marquee
-        behavior="scroll"
-        direction="left"
-        scrollamount="5"
-        style={{ 
-          color: "black", 
-          padding: "5px", 
-          fontSize: "18px", 
-          fontWeight: "bold", 
-          backgroundColor: ""  
-        }}
-      >
-        <h1> 🛒 Marketplace 🛒 </h1>
-      </marquee>
+      <div style={{
+  overflow: 'hidden',
+  background: 'rgba(255,255,255,0.4)',
+  padding: '40px 0',
+  borderBottom: '2px solid #a5d6a7'
+}}>
+  <h1 style={{
+    textAlign: 'center',
+    color: '#2e7d32',
+    fontSize: 'clamp(2rem, 3vw, 2.5rem)',
+    margin: 0,
+    fontWeight: 800
+  }}>
+    🛒 Marketplace 🛒
+  </h1>
+</div>
 
+<<<<<<< HEAD
       <div className="crops-grid">
         {products.map((crop) => (
           <div key={crop._id} className="crop-grid-item">
@@ -102,6 +105,47 @@ const closeDetails = () => setSelectedProduct(null);
               {crop.status === "verified" && (
                 <span className="status-badge verified">VERIFIED</span>
               )}
+=======
+      <div className="m-crops-grid">
+        {loading ? (
+          // Skeleton loading cards
+          Array.from({ length: 6 }).map((_, index) => (
+            <div key={index} className="skeleton-card">
+              <div className="skeleton-image"></div>
+              <div className="skeleton-content">
+                <div className="skeleton-line title"></div>
+                <div className="skeleton-line"></div>
+                <div className="skeleton-line short"></div>
+                <div className="skeleton-line short"></div>
+                <div className="skeleton-buttons">
+                  <div className="skeleton-button"></div>
+                  <div className="skeleton-button"></div>
+                </div>
+              </div>
+            </div>
+          ))
+        ) : (
+          products.map((crop) => (
+            <div key={crop._id} className="m-crop-grid-item">
+              <img
+                src={crop.image || `https://images.unsplash.com/photo-1511735643442-503bb3bd348a?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Y3JvcHxlbnwwfHwwfHx8MA%3D%3D/327x154/?${crop.variety || "farm,crop"}`} 
+                alt={crop.variety || "Rice"}
+                style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: '8px 8px 0 0' }}
+              />
+              <div className="m-crop-grid-details">
+                <strong>{crop.variety}</strong>
+                <p>₹ {crop.price}</p>
+                {crop.qualityGrade && <p>Grade: {crop.qualityGrade}</p>}
+                {crop.adminRating != null && <p>Rating: {crop.adminRating}🌟</p>}
+                {(crop.minPrice || crop.maxPrice) && (
+                  <p>Price range: ₹{crop.minPrice || '-'} - ₹{crop.maxPrice || '-'}</p>
+                )}
+                <p>Farmer: {crop.farmer?.name}</p>
+                <p>Available Quantity: {crop.quantity} kg</p>
+                {crop.status === "verified" && (
+                  <span className="status-badge verified">VERIFIED</span>
+                )}
+>>>>>>> d026356 (dockerize all things,changed some code and final update d version)
 
               <div className="card-buttons">
                 <button className="action-btn" onClick={() => openDetails(crop)}>Get Details</button>

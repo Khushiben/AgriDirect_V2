@@ -2,10 +2,162 @@ import "../styles/AddProduct.css";
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import VoiceAssistantSafe from "../components/VoiceAssistantSafe";
+import VoiceAssistantErrorBoundary from "../components/VoiceAssistantErrorBoundary";
+import FarmMap from "../components/FarmMap";
 
+// Mandi Price Card Component
+const MandiCard = ({ district, price, index }) => {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsVisible(true);
+    }, index * 500); // Staggered delay: 0s, 0.5s, 1s
+    return () => clearTimeout(timer);
+  }, [index]);
+
+  return (
+    <div className={`mandi-card ${isVisible ? 'visible' : ''}`}>
+      <div className="mandi-card-header">{district}</div>
+      <div className="mandi-commodity">{price.commodity} - {price.variety}</div>
+      <div className="mandi-price-main">₹{price.modalPrice}/{price.unit}</div>
+      <div className="mandi-price-range">Min: ₹{price.minPrice} - Max: ₹{price.maxPrice}</div>
+      <div className="mandi-updated">
+        Updated: {new Date(price.lastUpdated).toLocaleTimeString()}
+      </div>
+    </div>
+  );
+};
+
+// Skeleton Loading Card Component
+const SkeletonCard = () => (
+  <div className="skeleton-card">
+    <div className="skeleton-header"></div>
+    <div className="skeleton-line short"></div>
+    <div className="skeleton-line medium"></div>
+    <div className="skeleton-line short"></div>
+  </div>
+);
+
+// Mandi Prices Section Component with callback support
+const MandiPricesSection = ({ onPricesLoaded }) => {
+  const [mandiData, setMandiData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+ 
+
+  useEffect(() => {
+    const minLoadingTime = 3000;
+    const startTime = Date.now();
+
+    const fetchMandiPrices = async () => {
+      try {
+        console.log("Fetching mandi prices...");
+        const response = await axios.get("http://localhost:5000/api/mandi-prices");
+        console.log("Mandi API response:", response.data);
+        
+        const elapsed = Date.now() - startTime;
+        const remainingDelay = Math.max(0, minLoadingTime - elapsed);
+        
+        setTimeout(() => {
+          const data = response.data.data || [];
+          console.log("Setting mandi data:", data);
+          setMandiData(data);
+          setLoading(false);
+          // Call the callback when prices are loaded
+          if (onPricesLoaded) {
+            onPricesLoaded(data);
+          }
+        }, remainingDelay);
+      } catch (err) {
+        console.error("Error fetching mandi prices:", err);
+        setError(err.message);
+        setTimeout(() => {
+          setLoading(false);
+        }, minLoadingTime);
+      }
+    };
+
+    fetchMandiPrices();
+  }, [onPricesLoaded]);
+
+  if (loading) {
+    return (
+      <div className="mandi-prices-section">
+        <div className="mandi-prices-title">Live Mandi Prices (Rice)</div>
+        <div className="mandi-prices-grid">
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="mandi-prices-section">
+        <div className="mandi-prices-title">Live Mandi Prices (Rice)</div>
+        <div className="mandi-error">Error: {error}</div>
+      </div>
+    );
+  }
+ 
+
+  // Check if we have any prices to show
+  const hasPrices = mandiData.some(d => d.prices && d.prices.length > 0);
+
+  if (!hasPrices) {
+    return (
+      <div className="mandi-prices-section">
+        <div className="mandi-prices-title">Live Mandi Prices (Rice)</div>
+        <div className="mandi-empty">No rice price data available</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mandi-prices-section">
+      <div className="mandi-prices-title">Live Mandi Prices (Rice)</div>
+      <div className="mandi-prices-grid">
+        {mandiData
+          .flatMap((districtData) => 
+            districtData.prices && districtData.prices.length > 0 
+              ? districtData.prices.map((price, priceIndex) => ({
+                  district: districtData.district,
+                  price,
+                  index: priceIndex
+                }))
+              : []
+          )
+          .slice(0, 3)
+          .map((item) => (
+            <MandiCard
+              key={`${item.district}-${item.price.variety}`}
+              district={item.district}
+              price={item.price}
+              index={item.index}
+            />
+          ))}
+      </div>
+    </div>
+  );
+};
 
 export default function AddProduct() {
 const [pestCount, setPestCount] = useState(0);
+  const [availableFields, setAvailableFields] = useState([]);
+  const [showETHModal, setShowETHModal] = useState(false);
+  const [ethTxDetails, setEthTxDetails] = useState(null);
+   const [selectedImage, setSelectedImage] = useState(null);
+  const today = new Date();
+  const threeMonthsLater = new Date(today.getFullYear(), today.getMonth() + 3, today.getDate());
+  
+  const formatDate = (date) => {
+    return date.toISOString().split('T')[0]; // YYYY-MM-DD format for HTML date inputs
+  };
+
   const [formData, setFormData] = useState({
     riceType: "",
     category: "",
@@ -54,6 +206,46 @@ const [pestCount, setPestCount] = useState(0);
     setPestCount(count);
   };
 
+  // Detect available form fields for AI assistant
+  useEffect(() => {
+    const fields = [];
+    const inputs = document.querySelectorAll('input[name], select[name]');
+    inputs.forEach(input => {
+      if (input.name && input.type !== 'file') {
+        fields.push(input.name);
+      }
+    });
+    setAvailableFields(fields);
+  }, []);
+
+  // Track mandi prices loading state
+  const [mandiPricesLoaded, setMandiPricesLoaded] = useState(false);
+  const [priceSet, setPriceSet] = useState(false);
+
+  // Handle when mandi prices are loaded
+  const handleMandiPricesLoaded = (data) => {
+    setMandiPricesLoaded(true);
+    
+    // Calculate average from the loaded prices and convert from quintal to kg (1 quintal = 100 kg)
+    const allPrices = data.flatMap(d => d.prices || []);
+    if (allPrices.length > 0) {
+      const avgQuintalPrice = Math.round(allPrices.reduce((sum, p) => sum + p.modalPrice, 0) / allPrices.length);
+      const avgKgPrice = (avgQuintalPrice / 100).toFixed(2); // Convert to per kg with 2 decimals
+      
+      // Wait 1 second after mandi cards appear, then set price ONCE
+      setTimeout(() => {
+        setFormData(prev => ({
+          ...prev,
+          price: avgKgPrice.toString()
+        }));
+        setPriceSet(true);
+      }, 1000);
+    }
+  };
+
+    const handleImageChange = (e) => {
+  setSelectedImage(e.target.files[0]);
+};
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -66,6 +258,19 @@ const navigate = useNavigate();
 
 const handleSubmit = async (e) => {
   e.preventDefault();
+  let imageUrl = "";
+  if (selectedImage) {
+  const imgData = new FormData();
+  imgData.append("image", selectedImage);
+console.log("Sending image:", imageUrl);
+console.log("Calling upload API...");
+  const uploadRes = await axios.post(
+    "http://localhost:5000/api/products/upload",
+    imgData
+  );
+
+  imageUrl = uploadRes.data.imageUrl;
+}
 
   const token = localStorage.getItem("token");
   if (!token) {
@@ -81,26 +286,18 @@ const handleSubmit = async (e) => {
 
   try {
     const storedUser = JSON.parse(localStorage.getItem("user"));
-    // ✅ Create FormData object
-    const data = new FormData();
+    
+    
+    // Create regular JSON object (no FormData needed)
+    const data = {
+      ...formData,
+      farmerId: storedUser.userId,
+      // Use fixed Google Photos rice image
+      image: imageUrl || "https://images.unsplash.com/photo-1511735643442-503bb3bd348a?w=1000&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Y3JvcHxlbnwwfHwwfHx8MA%3D%3D/200",
 
-    // Append all fields except image
-    Object.keys(formData).forEach((key) => {
-      if (key === "pests") {
-        data.append("pests", JSON.stringify(formData.pests)); 
-      } 
-      else if (key !== "image") {
-        data.append(key, formData[key]);
-      }
-    });
-    data.append("farmerId", storedUser.userId);
+      pests: JSON.stringify(formData.pests)
+    };
 
-    // ✅ Append image separately
-    if (formData.image) {
-      data.append("image", formData.image);
-    }
-
-    const token = localStorage.getItem("token");
     const response = await axios.post(
       "http://localhost:5000/api/products/add",
       data,
@@ -126,8 +323,6 @@ const handleSubmit = async (e) => {
     );
   }
 };
-
-
 
   const basmatiVarieties = [
   "Basmati Rice (1121 & Pusa)"
@@ -209,6 +404,25 @@ const nonBasmatiVarieties = [
   />
 </div>
 <div>
+<div className="image-upload-section">
+  <label>Upload Crop Image</label>
+  
+  <input
+    type="file"
+    accept="image/*"
+    onChange={handleImageChange}
+  />
+
+  {selectedImage && (
+    <div style={{ marginTop: "10px" }}>
+      <img
+        src={URL.createObjectURL(selectedImage)}
+        alt="Preview"
+        style={{ width: "200px", borderRadius: "10px" }}
+      />
+    </div>
+  )}
+</div>
         {/* Crop Season */}
         <label>Crop Season</label>
         <select
@@ -248,39 +462,75 @@ const nonBasmatiVarieties = [
 
 
 </div>
+
+
+{/* Price and Quantity row - side by side */}
+<div className="input-row">
+  <div className="input-half price-input-container">
+    <label>Price per kg (₹)</label>
+    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+      <input
+        id="price"
+        type="number"
+        name="price"
+        value={formData.price}
+        onChange={handleChange}
+        required
+        placeholder={!mandiPricesLoaded ? "Loading mandi prices..." : "Enter price"}
+        style={{ 
+          width: '100%',
+          paddingRight: priceSet ? '110px' : '12px',
+          background: priceSet ? 'linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%)' : '#fff',
+          borderColor: priceSet ? '#4CAF50' : '#ddd',
+          transition: 'all 0.3s ease'
+        }}
+      />
+      {priceSet && (
+        <span className="ai-suggestion-badge" style={{ animation: 'aiBadgeSlideIn 0.4s ease-out' }}>
+          🤖 AI
+        </span>
+      )}
+    </div>
+    <small style={{ 
+      color: priceSet ? '#2E7D32' : '#666', 
+      fontSize: '11px', 
+      display: 'block', 
+      marginTop: '4px'
+    }}>
+      {!mandiPricesLoaded ? '⏳ Loading mandi prices...' : 
+       !priceSet ? '🔄 Calculating average...' :
+       '✅ Price set from Anand mandi rates (editable)'}
+    </small>
+  </div>
+  <div className="input-half">
+    <label>Available Quantity (in kg)</label>
+    <input
+      id="quantity"
+      type="number"
+      name="quantity"
+      value={formData.quantity}
+      onChange={handleChange}
+      required
+    />
+  </div>
+</div>
+
+{/* Mandi Prices - 3 boxes side by side */}
+<MandiPricesSection onPricesLoaded={handleMandiPricesLoaded} />
+
 <div>
-        {/* Quantity */}
-        <label>Available Quantity (in kg)</label>
-        <input
-          type="number"
-          name="quantity"
-          value={formData.quantity}
-          onChange={handleChange}
-          required
-        />
-</div><div>
-        {/* Price */}
-        <label>Price per Quintal (₹)</label>
-        <input
-          type="number"
-          name="price"
-          value={formData.price}
-          onChange={handleChange}
-          required
-        />
-</div><div>
-        {/* Negotiable */}
-        <label>Is Price Negotiable?</label>
-        <select
-          name="negotiable"
-          value={formData.negotiable}
-          onChange={handleChange}
-          required
-        >
-          <option value="">Select Option</option>
-          <option value="Yes">Yes</option>
-          <option value="No">No</option>
-        </select>
+  <label>Is Price Negotiable?</label>
+  <select
+    id="negotiable"
+    name="negotiable"
+    value={formData.negotiable}
+    onChange={handleChange}
+    required
+  >
+    <option value="">Select Option</option>
+    <option value="Yes">Yes</option>
+    <option value="No">No</option>
+  </select>
 </div>
 {/* 2nd section */}
         <h2 className="section-title">Cultivation Details</h2>

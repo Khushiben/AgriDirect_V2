@@ -35,7 +35,14 @@ app.use("/uploads", express.static("uploads"));
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/distributor-purchases", distributorPurchaseRoutes);
-app.use("/api/prices", priceRoutes);
+app.use("/api/distributor-add-product", distributorAddProduct);
+app.use("/api", retailerProductRoutes);
+app.use("/api/distributortomarketplaces", distributorMarketplaceRoutes);
+app.use("/api/retailer-purchases", retailerPurchaseRoutes);
+app.use("/api/retailer-marketplace", retailerMarketplaceRoutes);
+app.use("/api/ai", aiRoutes);
+app.use("/api/profile", profileRoutes);
+app.use("/api/mandi-prices", mandiPriceRoutes);
 
 // Error handling
 app.use((err, req, res, next) => {

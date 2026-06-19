@@ -411,3 +411,12 @@
 .status-badge.pending {
   background-color: #ff9800; /* orange */
 }
+.assigned-to-me {
+  border: 2px solid #4CAF50;
+  box-shadow: 0 0 8px rgba(76, 175, 80, 0.3);
+}
+
+.view-only {
+  border: 2px solid #ddd;
+  opacity: 0.85;
+}

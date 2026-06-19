@@ -35,6 +35,9 @@ router.post("/", protect, async (req, res) => {
         .json({ message: "Not enough stock available" });
     }
 
+    // Generate purchase transaction hash
+    const purchaseTxHash = '0x' + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+
     const purchase = new DistributorPurchase({
       product: productId,
       farmer: farmerId,
@@ -102,6 +105,6 @@ router.get("/my-sales", protect, async (req, res) => {
   }
 });
 
- 
+
 
 module.exports = router;
